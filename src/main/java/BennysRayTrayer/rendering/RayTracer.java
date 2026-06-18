@@ -9,7 +9,7 @@ import BennysRayTrayer.scene.Scene;
 
 public class RayTracer {
 
-    static int depth = 1;
+    static int depth = 3;
 
     public static void setDepth(int depth) {
         RayTracer.depth = depth;
@@ -101,35 +101,69 @@ public class RayTracer {
             return scene.getBackgroundColor();
         }
 
-        if (depth <= 0) {
-            return new Vec3(0, 0, 0);
-        }
-
         Vec3 localColor = shade(scene.getCamera(), hit, scene.getLights(), scene.getObjects());
 
-        if (depth == 1) return localColor;
-
-        Material mat = hit.object.getMaterial();
-        float reflectionStrength = 0.1f; // erstmal testweise hart
-
-        Vec3 I = ray.direction.normalize();
-        Vec3 N = hit.normal.normalize();
-
-        Vec3 R = I.sub(N.mul(2.0f * I.dot(N))).normalize();
-
-        Ray reflectionRay = new Ray(
-                hit.position.add(N.mul(0.001f)), // kleiner Offset gegen Self-Hit
-                R
-        );
-
-        if (mat == null || mat.reflectionStrength <= 0 || depth <= 1) {
+        if (depth <= 0) {
             return localColor;
         }
 
-        Vec3 reflectionColor = traceRay(reflectionRay, scene, depth - 1);
+        Material mat = hit.object.getMaterial();
 
-        return localColor.mul(1.0f - reflectionStrength)
-                .add(reflectionColor.mul(reflectionStrength));
+        if (mat == null) {
+            return localColor;
+        }
+
+        Vec3 I = ray.direction.normalize();
+        Vec3 N = hit.normal.normalize();
+        double n1 = 1.0;
+        double n2 = mat.refractiveIndex;
+
+
+        if (I.dot(N) > 0) {
+            N = N.mul(-1);
+            n1 = mat.refractiveIndex;
+            n2 = 1.0;
+        }
+
+        Vec3 result;
+
+        if (mat.transparency > 0) {
+            result = localColor.mul((float)(1.0 - mat.transparency));
+        } else {
+            result = localColor;
+        }
+
+        if (mat.reflectionStrength > 0) {
+            Vec3 reflectDir = reflect(I, N);
+
+            Ray reflectRay = new Ray(
+                    hit.position.add(reflectDir.mul(0.001f)),
+                    reflectDir
+            );
+
+            Vec3 reflectColor = traceRay(reflectRay, scene, depth - 1);
+
+            result = result.mul((float)(1.0 - mat.reflectionStrength))
+                    .add(reflectColor.mul((float)mat.reflectionStrength));
+        }
+
+        if (mat.transparency > 0) {
+            Vec3 refractDir = refract(I, N, n1, n2);
+
+            if (refractDir != null) {
+                Ray refractRay = new Ray(
+                        hit.position.add(refractDir.mul(0.001f)),
+                        refractDir
+                );
+
+                Vec3 refractColor = traceRay(refractRay, scene, depth - 1);
+
+                result = result.mul((float)(1.0 - mat.transparency))
+                        .add(refractColor.mul((float)mat.transparency));
+            }
+        }
+
+        return result;
     }
 
     private static int colorToPixel(Vec3 color) {
@@ -149,5 +183,21 @@ public class RayTracer {
         int bi = (int) Math.min(255, b * 255);
 
         return (ri << 16) | (gi << 8) | bi;
+    }
+
+    public static Vec3 reflect(Vec3 I, Vec3 N) {
+        return I.sub(N.mul(2.0f * I.dot(N))).normalize();
+    }
+
+    public static Vec3 refract(Vec3 I, Vec3 N, double n1, double n2) {
+        float eta = (float) (n1 / n2);
+        float a = -I.dot(N);
+        float k = 1.0f - eta * eta * (1.0f - a * a);
+        if(k < 0){
+            return null;
+        }
+        float b = (float) Math.sqrt(k);
+
+        return I.mul(eta).add(N.mul(eta * a - b)).normalize();
     }
 }

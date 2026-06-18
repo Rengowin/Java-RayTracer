@@ -42,18 +42,37 @@ public class RayTraying {
         Camera cam = new Camera(new Vec3(0, 0, 3), 60, new Vec3(0, 0, -1));
 
         // Test-Szenario: Eine einfache Kugel
-        Material testMat = new Material(
+        Material[] testMat = new Material[]{new Material(
                 new Vec3(0.8f, 0.2f, 0.2f),
-                0.5,
-                0.0,
-                0.0,
+                0.7,
+                0.2f,
+                0.05f,
                 0.0,
                 0.0
-        );
-        Sphere testSphere = new Sphere(new Vec3(0, 0, 0), 1.0, new Vec3(1, 1, 1));
-        testSphere.setMaterial(testMat);
+        ), new Material(
+                new Vec3(0.2f, 0.8f, 0.2f),
+                0.7,
+                0.2f,
+                0.05f,
+                0.0,
+                0.0
+        ), new Material(
+                new Vec3(0.9f, 0.95f, 1.0f),
+                0.02,
+                0.0,
+                0.02,
+                0.9,
+                1.2
+        )};
+        Sphere glass = new Sphere(new Vec3(0, 0, 0.7f), 0.75, new Vec3(1, 1, 1));
+        Sphere red = new Sphere(new Vec3(-1.6f, 0, -1.4f), 0.8, new Vec3(1, 1, 1));
+        Sphere green = new Sphere(new Vec3(1.6f, 0, -1.4f), 0.8, new Vec3(1, 1, 1));
+        red.setMaterial(testMat[0]);
+        green.setMaterial(testMat[1]);
+        glass.setMaterial(testMat[2]);
 
-        Object3D[] objects = new Object3D[] { testSphere };
+        Object3D[] objects = new Object3D[] { red, green, glass };
+
 
         Light[] lights = new Light[] {
                 new Light(new Vec3(3, 4, 3), 1.0),
