@@ -121,4 +121,5 @@ public class Matrix4 {
         float z = dir.x * m[0][2] + dir.y * m[1][2] + dir.z * m[2][2];
         return new Vec3(x, y, z);
     }
+
 }

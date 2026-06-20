@@ -1,6 +1,7 @@
 package BennysRayTrayer.scene;
 
 import BennysRayTrayer.core.Vec3;
+import BennysRayTrayer.objects.Color;
 import BennysRayTrayer.objects.Object3D;
 import BennysRayTrayer.rendering.Light;
 
@@ -9,13 +10,13 @@ public class Scene {
     Object3D[] objects;
     Light[] lights;
     Camera camera;
-    Vec3 backgroundColor;
+    Color backgroundColor;
 
     public Scene(Camera camera, Object3D[] objects, Light[] lights) {
         this.camera = camera;
         this.objects = objects;
         this.lights = lights;
-        this.backgroundColor = new Vec3(0.125f, 0.125f, 0.25f); // Standard Hintergrundfarbe
+        this.backgroundColor = Color.of(0.125f, 0.125f, 0.25f); // Standard Hintergrundfarbe
     }
 
     public Object3D[] getObjects() {
@@ -30,11 +31,22 @@ public class Scene {
         return camera;
     }
 
-    public Vec3 getBackgroundColor() {
+
+    public Color getBackgroundColor() {
         return backgroundColor;
     }
 
-    public void setBackgroundColor(Vec3 color) {
+    // Backwards-compatible Vec3 accessor
+    public Vec3 getBackgroundColorVec3() {
+        return backgroundColor == null ? null : backgroundColor.toVec3();
+    }
+
+    public void setBackgroundColor(Color color) {
         this.backgroundColor = color;
+    }
+
+    // Backwards-compatible setter accepting Vec3
+    public void setBackgroundColor(Vec3 color) {
+        this.backgroundColor = (color == null) ? null : Color.of(color.x, color.y, color.z);
     }
 }

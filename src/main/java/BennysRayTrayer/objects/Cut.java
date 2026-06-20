@@ -22,10 +22,11 @@ public class Cut extends Object3D{
     public List<HitInterval> intersectIntervals(Ray ray) {
         final double EPS = 1e-6;
 
-        Vec3 p = this.getTransform().getPosition();
+        Vec3 s = this.getTransform().getScale();
 
-        Vec3 localOrigin = inverseRotate(ray.origin.sub(p));
-        Vec3 localDir = inverseRotate(ray.direction);
+        Vec3 localOrigin = toLocalPoint(ray.origin);
+        Vec3 localDir = toLocalDirection(ray.direction);
+
         Ray localRay = new Ray(localOrigin, localDir);
 
         List<HitInterval> intervalsA = a.intersectIntervals(localRay);
@@ -46,11 +47,16 @@ public class Cut extends Object3D{
 
                 if (overlapStart < overlapEnd - EPS) {
                     // Es gibt eine Überlappung
-                    Vec3 normalEnter = (ia.tEnter >= ib.tEnter) ? ia.normalEnter : ib.normalEnter;
-                    Vec3 normalExit = (ia.tExit <= ib.tExit) ? ia.normalExit : ib.normalExit;
-                    
-                    Vec3 worldNormalEnter = rotate(normalEnter).normalize();
-                    Vec3 worldNormalExit = rotate(normalExit).normalize();
+                    Vec3 normalEnter = (ia.tEnter >= ib.tEnter)
+                            ? ia.normalEnter
+                            : ib.normalEnter;
+
+                    Vec3 normalExit = (ia.tExit <= ib.tExit)
+                            ? ia.normalExit
+                            : ib.normalExit;
+
+                    Vec3 worldNormalEnter = toWorldDirection(normalEnter).normalize();
+                    Vec3 worldNormalExit = toWorldDirection(normalExit).normalize();
 
                     result.add(new HitInterval(overlapStart, overlapEnd, 
                             worldNormalEnter, worldNormalExit, ia.objectEnter));

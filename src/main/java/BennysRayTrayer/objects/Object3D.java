@@ -10,7 +10,7 @@ import java.util.List;
 
 public abstract class Object3D {
 
-    protected Vec3 color;
+    protected Color color;
 
     protected Material material;
 
@@ -18,19 +18,20 @@ public abstract class Object3D {
 
     //vlt in den contructor packen
 
-    public Object3D(Vec3 color, Material material, Transform transform) {
+    public Object3D(Color color, Material material, Transform transform) {
         this.color = color;
         this.material = material;
         this.transform = transform;
     }
 
-    public Object3D(Vec3 color, Material material) {
+    public Object3D(Color color, Material material) {
         this.color = color;
         this.material = material;
         this.transform = new Transform();
     }
 
-    public Object3D(Vec3 color) {
+
+    public Object3D(Color color) {
         this.color = color;
         this.transform = new Transform();
     }
@@ -44,12 +45,22 @@ public abstract class Object3D {
         this.transform = new Transform();
     }
 
-    public Vec3 getColor() {
+    public Color getColor() {
         return color;
     }
 
-    public void setColor(Vec3 color) {
+    // Backwards-compatible: return color as Vec3
+    public Vec3 getColorVec3() {
+        return color == null ? null : color.toVec3();
+    }
+
+    public void setColor(Color color) {
         this.color = color;
+    }
+
+    // Backwards-compatible setter accepting Vec3
+    public void setColor(Vec3 color) {
+        this.color = (color == null) ? null : new Color(color.x, color.y, color.z);
     }
 
     public void setMaterial(Material material) { this.material = material;}
@@ -89,8 +100,9 @@ public abstract class Object3D {
         this.transform.setScale(scale);
     }
 
-    public void setRotation(Vec3 rotation) {
+    public Object3D setRotation(Vec3 rotation) {
         this.transform.setRotation(rotation);
+        return this;
     }
     
     public void setTransform(Transform transform) {
@@ -101,22 +113,19 @@ public abstract class Object3D {
         return this.transform;
     }
 
-    protected Vec3 transformPoint(Vec3 p) {
-        return this.transform.getMatrix().multiplyPoint(p);
+    protected Vec3 toWorldPoint(Vec3 p) {
+        return transform.localToWorldPoint(p);
     }
 
-    protected Vec3 transformDirection(Vec3 d) {
-        return this.transform.getMatrix().multiplyDirection(d);
-    }
-    
-    // Legacy method - for backward compatibility
-    protected Vec3 rotate(Vec3 v) {
-        return this.transform.getMatrix().multiplyDirection(v);
+    protected Vec3 toWorldDirection(Vec3 d) {
+        return transform.localToWorldDirection(d);
     }
 
-    // Legacy method - would need matrix inversion for proper inverse
-    protected Vec3 inverseRotate(Vec3 v) {
-        // This is a simplified version - proper implementation would require matrix inversion
-        return v;
+    protected Vec3 toLocalPoint(Vec3 p) {
+        return transform.worldToLocalPoint(p);
+    }
+
+    protected Vec3 toLocalDirection(Vec3 d) {
+        return transform.worldToLocalDirection(d);
     }
 }

@@ -1,0 +1,50 @@
+package BennysRayTrayer.objects;
+
+import BennysRayTrayer.core.Vec3;
+
+/**
+ * Color value object. Use instances when you want a typed color, or
+ * call {@link #toVec3()} to get a {@link Vec3} compatible with the
+ * rest of the codebase.
+ */
+public class Color {
+
+    public final float r;
+    public final float g;
+    public final float b;
+
+    public Color(float r, float g, float b) {
+        this.r = r;
+        this.g = g;
+        this.b = b;
+    }
+
+    public Vec3 toVec3() {
+        return new Vec3(r, g, b);
+    }
+
+    // Common color factories (return Color instances)
+    public static Color red()     { return new Color(1f, 0f, 0f); }
+    public static Color green()   { return new Color(0f, 1f, 0f); }
+    public static Color blue()    { return new Color(0f, 0f, 1f); }
+    public static Color white()   { return new Color(1f, 1f, 1f); }
+    public static Color black()   { return new Color(0f, 0f, 0f); }
+    public static Color yellow()  { return new Color(1f, 1f, 0f); }
+    public static Color cyan()    { return new Color(0f, 1f, 1f); }
+    public static Color magenta() { return new Color(1f, 0f, 1f); }
+    public static Color orange()  { return new Color(1f, 0.5f, 0f); }
+    public static Color gray()    { return new Color(0.5f, 0.5f, 0.5f); }
+
+    public static Color of(float r, float g, float b) {
+        return new Color(r, g, b);
+    }
+
+    public static Color ofRGB(int r, int g, int b) {
+        return new Color(r / 255f, g / 255f, b / 255f);
+    }
+
+    @Override
+    public String toString() {
+        return "Color{" + r + "," + g + "," + b + "}";
+    }
+}

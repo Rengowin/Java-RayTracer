@@ -8,11 +8,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class DIff extends Object3D {
+public class Diff extends Object3D {
     Object3D a;
     Object3D b;
 
-    public DIff(Object3D a, Object3D b) {
+    public Diff(Object3D a, Object3D b) {
         this.a = a;
         this.b = b;
     }
@@ -21,10 +21,11 @@ public class DIff extends Object3D {
     public List<HitInterval> intersectIntervals(Ray ray) {
         final double EPS = 1e-6;
 
-        Vec3 p = this.getTransform().getPosition();
+        Vec3 s = this.getTransform().getScale();
 
-        Vec3 localOrigin = inverseRotate(ray.origin.sub(p));
-        Vec3 localDir = inverseRotate(ray.direction);
+        Vec3 localOrigin = toLocalPoint(ray.origin);
+        Vec3 localDir = toLocalDirection(ray.direction);
+
         Ray localRay = new Ray(localOrigin, localDir);
 
         List<HitInterval> intervalsA = a.intersectIntervals(localRay);
@@ -40,8 +41,8 @@ public class DIff extends Object3D {
         if (intervalsB == null || intervalsB.isEmpty()) {
             // B ist leer, also A ungekürzt
             for (HitInterval ia : intervalsA) {
-                Vec3 worldNormalEnter = rotate(ia.normalEnter).normalize();
-                Vec3 worldNormalExit = rotate(ia.normalExit).normalize();
+                Vec3 worldNormalEnter = toWorldDirection(ia.normalEnter).normalize();
+                Vec3 worldNormalExit = toWorldDirection(ia.normalExit).normalize();
                 result.add(new HitInterval(ia.tEnter, ia.tExit, 
                         worldNormalEnter, worldNormalExit, ia.objectEnter));
             }
@@ -67,8 +68,8 @@ public class DIff extends Object3D {
 
                     // Teil VOR der Überlappung
                     if (currentStart < overlapStart - EPS) {
-                        Vec3 worldNormalEnter = rotate(ia.normalEnter).normalize();
-                        Vec3 worldNormalExit = rotate(ia.normalExit).normalize();
+                        Vec3 worldNormalEnter = toWorldDirection(ia.normalEnter).normalize();
+                        Vec3 worldNormalExit = toWorldDirection(ia.normalExit).normalize();
                         result.add(new HitInterval(currentStart, overlapStart, 
                                 worldNormalEnter, worldNormalExit, ia.objectEnter));
                     }
@@ -78,8 +79,8 @@ public class DIff extends Object3D {
 
                 // Verbleibendes Teil NACH allen B-Intervallen
                 if (currentStart < currentExit - EPS) {
-                    Vec3 worldNormalEnter = rotate(ia.normalEnter).normalize();
-                    Vec3 worldNormalExit = rotate(ia.normalExit).normalize();
+                    Vec3 worldNormalEnter = toWorldDirection(ia.normalEnter).normalize();
+                    Vec3 worldNormalExit = toWorldDirection(ia.normalExit).normalize();
                     result.add(new HitInterval(currentStart, currentExit, 
                             worldNormalEnter, worldNormalExit, ia.objectEnter));
                 }

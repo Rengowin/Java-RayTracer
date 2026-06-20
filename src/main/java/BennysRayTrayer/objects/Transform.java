@@ -3,99 +3,79 @@ package BennysRayTrayer.objects;
 import BennysRayTrayer.core.Matrix4;
 import BennysRayTrayer.core.Vec3;
 
-public class Transform
-{
-    private Matrix4 matrix;
-    
-    public Transform()
-    {
-        matrix = new Matrix4();
+public class Transform {
+
+    private Vec3 position = new Vec3(0, 0, 0);
+    private Vec3 rotation = new Vec3(0, 0, 0); // Grad
+    private Vec3 scale = new Vec3(1, 1, 1);
+
+    private Matrix4 localToWorld = new Matrix4();
+    private Matrix4 worldToLocal = new Matrix4();
+
+    public void setPosition(Vec3 position) {
+        this.position = position;
+        rebuildMatrices();
     }
 
-    public Transform(Vec3 position, Vec3 rotation, Vec3 scale)
-    {
-        matrix = new Matrix4();
-        setPosition(position);
-        setRotation(rotation);
-        setScale(scale);
-    }
-    
-    public Transform(Matrix4 matrix)
-    {
-        this.matrix = new Matrix4(matrix);
-    }
-    
-    public Matrix4 getMatrix() {
-        return matrix;
-    }
-    
-    public void setMatrix(Matrix4 matrix) {
-        this.matrix = new Matrix4(matrix);
-    }
-    
-    public void setPosition(Vec3 position) {
-        matrix.m[3][0] = position.x;
-        matrix.m[3][1] = position.y;
-        matrix.m[3][2] = position.z;
-    }
-    
     public void setRotation(Vec3 rotation) {
-        // Reset the rotation part of the matrix
-        matrix.m[0][0] = 1; matrix.m[0][1] = 0; matrix.m[0][2] = 0;
-        matrix.m[1][0] = 0; matrix.m[1][1] = 1; matrix.m[1][2] = 0;
-        matrix.m[2][0] = 0; matrix.m[2][1] = 0; matrix.m[2][2] = 1;
-        
-        // Apply rotations
-        double rx = Math.toRadians(rotation.x);
-        double ry = Math.toRadians(rotation.y);
-        double rz = Math.toRadians(rotation.z);
-        
-        // Rotation order: Z, Y, X (right to left application)
-        double cosX = Math.cos(rx), sinX = Math.sin(rx);
-        double cosY = Math.cos(ry), sinY = Math.sin(ry);
-        double cosZ = Math.cos(rz), sinZ = Math.sin(rz);
-        
-        // Combined rotation matrix
-        matrix.m[0][0] = (float)(cosY * cosZ);
-        matrix.m[0][1] = (float)(cosY * sinZ);
-        matrix.m[0][2] = (float)(-sinY);
-        
-        matrix.m[1][0] = (float)(sinX * sinY * cosZ - cosX * sinZ);
-        matrix.m[1][1] = (float)(sinX * sinY * sinZ + cosX * cosZ);
-        matrix.m[1][2] = (float)(sinX * cosY);
-        
-        matrix.m[2][0] = (float)(cosX * sinY * cosZ + sinX * sinZ);
-        matrix.m[2][1] = (float)(cosX * sinY * sinZ - sinX * cosZ);
-        matrix.m[2][2] = (float)(cosX * cosY);
+        this.rotation = rotation;
+        rebuildMatrices();
     }
-    
+
     public void setScale(Vec3 scale) {
-        // Apply scaling to the matrix rotation part
-        float scaleX = matrix.m[0][0] == 0 ? scale.x : (scale.x / Math.abs(matrix.m[0][0]));
-        float scaleY = matrix.m[1][1] == 0 ? scale.y : (scale.y / Math.abs(matrix.m[1][1]));
-        float scaleZ = matrix.m[2][2] == 0 ? scale.z : (scale.z / Math.abs(matrix.m[2][2]));
-        
-        matrix.m[0][0] *= scale.x;
-        matrix.m[0][1] *= scale.x;
-        matrix.m[0][2] *= scale.x;
-        
-        matrix.m[1][0] *= scale.y;
-        matrix.m[1][1] *= scale.y;
-        matrix.m[1][2] *= scale.y;
-        
-        matrix.m[2][0] *= scale.z;
-        matrix.m[2][1] *= scale.z;
-        matrix.m[2][2] *= scale.z;
+        this.scale = scale;
+        rebuildMatrices();
     }
-    
+
     public Vec3 getPosition() {
-        return new Vec3(matrix.m[3][0], matrix.m[3][1], matrix.m[3][2]);
+        return position;
     }
-    
+
+    public Vec3 getRotation() {
+        return rotation;
+    }
+
     public Vec3 getScale() {
-        float scaleX = (float) Math.sqrt(matrix.m[0][0] * matrix.m[0][0] + matrix.m[1][0] * matrix.m[1][0] + matrix.m[2][0] * matrix.m[2][0]);
-        float scaleY = (float) Math.sqrt(matrix.m[0][1] * matrix.m[0][1] + matrix.m[1][1] * matrix.m[1][1] + matrix.m[2][1] * matrix.m[2][1]);
-        float scaleZ = (float) Math.sqrt(matrix.m[0][2] * matrix.m[0][2] + matrix.m[1][2] * matrix.m[1][2] + matrix.m[2][2] * matrix.m[2][2]);
-        return new Vec3(scaleX, scaleY, scaleZ);
+        return scale;
+    }
+
+    public Matrix4 getLocalToWorld() {
+        return localToWorld;
+    }
+
+    public Matrix4 getWorldToLocal() {
+        return worldToLocal;
+    }
+
+    public Vec3 localToWorldPoint(Vec3 p) {
+        return localToWorld.multiplyPoint(p);
+    }
+
+    public Vec3 localToWorldDirection(Vec3 d) {
+        return localToWorld.multiplyDirection(d);
+    }
+
+    public Vec3 worldToLocalPoint(Vec3 p) {
+        return worldToLocal.multiplyPoint(p);
+    }
+
+    public Vec3 worldToLocalDirection(Vec3 d) {
+        return worldToLocal.multiplyDirection(d);
+    }
+
+    private void rebuildMatrices() {
+        localToWorld = new Matrix4()
+                .scale(scale.x, scale.y, scale.z)
+                .rotateX((float)Math.toRadians(rotation.x))
+                .rotateY((float)Math.toRadians(rotation.y))
+                .rotateZ((float)Math.toRadians(rotation.z))
+                .translate(position.x, position.y, position.z);
+
+        worldToLocal = new Matrix4()
+                .translate(-position.x, -position.y, -position.z)
+                .rotateZ((float)Math.toRadians(-rotation.z))
+                .rotateY((float)Math.toRadians(-rotation.y))
+                .rotateX((float)Math.toRadians(-rotation.x))
+                .scale(1f / scale.x, 1f / scale.y, 1f / scale.z);
     }
 }

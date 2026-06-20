@@ -22,7 +22,7 @@ public class RayTracer {
         Camera cam = scene.getCamera();
         Object3D[] objects = scene.getObjects();
         Light[] lights = scene.getLights();
-        Vec3 bgColor = scene.getBackgroundColor();
+        Vec3 bgColor = scene.getBackgroundColorVec3();
 
         Vec3 camPos = cam.getPosition();
         for (int y = 0; y < resY; y++) {
@@ -63,7 +63,10 @@ public class RayTracer {
             // Prüfe, ob der Punkt im Schatten liegt
             if (!isInShadow(hitPoint, light, objects)) {
                 if (mat != null) {
-                    Vec3 lightColor = light.getColor().length() > 0 ? light.getColor() : new Vec3(1, 1, 1);
+                    Vec3 lightColor = light.getColorVec3();
+                    if (lightColor == null || lightColor.length() == 0) {
+                        lightColor = new Vec3(1, 1, 1);
+                    }
                     Vec3 contrib = CookTorrance.shade(
                             mat.albedo, mat.roughness, mat.metallic,
                             N, V, L, lightColor, light.getIntensity()
@@ -71,7 +74,10 @@ public class RayTracer {
                     pixelColor = pixelColor.add(contrib);
                 } else {
                     float intensity = Math.max(0, N.dot(L)) * (float) light.getIntensity();
-                    pixelColor = pixelColor.add(hit.object.getColor().mul(intensity));
+                    Vec3 objColor = hit.object.getColorVec3();
+                    if (objColor != null) {
+                        pixelColor = pixelColor.add(objColor.mul(intensity));
+                    }
                 }
             }
         }
@@ -98,7 +104,7 @@ public class RayTracer {
         Hit hit = findClosestHit(ray, scene.getObjects());
 
         if (hit == null) {
-            return scene.getBackgroundColor();
+            return scene.getBackgroundColorVec3();
         }
 
         Vec3 localColor = shade(scene.getCamera(), hit, scene.getLights(), scene.getObjects());

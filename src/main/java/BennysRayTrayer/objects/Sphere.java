@@ -3,6 +3,7 @@ package BennysRayTrayer.objects;
 import BennysRayTrayer.core.HitInterval;
 import BennysRayTrayer.core.Ray;
 import BennysRayTrayer.core.Vec3;
+import BennysRayTrayer.objects.Color;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -11,7 +12,7 @@ public class Sphere extends Object3D {
 
     double radius;
 
-    public Sphere(Vec3 center, double radius, Vec3 color) {
+    public Sphere(Vec3 center, double radius, Color color) {
         super(color);
         this.setPosition(center);
         this.radius = radius;
@@ -29,23 +30,22 @@ public class Sphere extends Object3D {
     public List<HitInterval> intersectIntervals(Ray ray) {
         final double EPS = 1e-6;
 
-        Vec3 p = this.getTransform().getPosition();
         Vec3 s = this.getTransform().getScale();
+
+        Vec3 localOrigin = toLocalPoint(ray.origin);
+        Vec3 localDir = toLocalDirection(ray.direction);
 
         if (Math.abs(s.x) < EPS || Math.abs(s.y) < EPS || Math.abs(s.z) < EPS) {
             return new ArrayList<>();
         }
 
-        Vec3 localOrigin = inverseRotate(ray.origin.sub(p));
-        Vec3 localDir = inverseRotate(ray.direction);
+        double ox = localOrigin.x;
+        double oy = localOrigin.y;
+        double oz = localOrigin.z;
 
-        double ox = localOrigin.x / s.x;
-        double oy = localOrigin.y / s.y;
-        double oz = localOrigin.z / s.z;
-
-        double dx = localDir.x / s.x;
-        double dy = localDir.y / s.y;
-        double dz = localDir.z / s.z;
+        double dx = localDir.x;
+        double dy = localDir.y;
+        double dz = localDir.z;
 
         double A = dx * dx + dy * dy + dz * dz;
         double B = 2.0 * (ox * dx + oy * dy + oz * dz);
@@ -85,25 +85,25 @@ public class Sphere extends Object3D {
         Vec3 localHitPointEnter = new Vec3((float) lx_enter, (float) ly_enter, (float) lz_enter);
         Vec3 localHitPointExit = new Vec3((float) lx_exit, (float) ly_exit, (float) lz_exit);
 
-        Vec3 hitPointEnter = rotate(new Vec3(
+        Vec3 hitPointEnter = toWorldPoint(new Vec3(
                 (float) (lx_enter * s.x),
                 (float) (ly_enter * s.y),
                 (float) (lz_enter * s.z)
-        )).add(p);
+        ));
 
-        Vec3 hitPointExit = rotate(new Vec3(
+        Vec3 hitPointExit = toWorldPoint(new Vec3(
                 (float) (lx_exit * s.x),
                 (float) (ly_exit * s.y),
                 (float) (lz_exit * s.z)
-        )).add(p);
+        ));
 
-        Vec3 normalEnter = rotate(new Vec3(
+        Vec3 normalEnter = toWorldDirection(new Vec3(
                 (float) (localHitPointEnter.x / s.x),
                 (float) (localHitPointEnter.y / s.y),
                 (float) (localHitPointEnter.z / s.z)
         )).normalize();
 
-        Vec3 normalExit = rotate(new Vec3(
+        Vec3 normalExit = toWorldDirection(new Vec3(
                 (float) (localHitPointExit.x / s.x),
                 (float) (localHitPointExit.y / s.y),
                 (float) (localHitPointExit.z / s.z)
