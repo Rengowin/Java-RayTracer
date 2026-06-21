@@ -18,6 +18,9 @@ import javax.swing.JLabel;
 
 public class Main {
 
+
+    //TODO: Anschauen warum Rotation bei CUT uns so "komisch" ist (also ration geht schon irgendwie aber der "inhalt" von den cut und diffs dreht sich nicht wie gewünscht
+
     public static void main(String[] args) {
         // === Fenster erstellen ===
         int resX = 1024;
@@ -37,25 +40,98 @@ public class Main {
 
         // === Scene erstellen ===
         Camera cam = new Camera(
-                new Vec3(0, 1.5f, 9),
+                new Vec3(0, 5f, 10),
                 60,
                 new Vec3(0, -0.2f, -1)
         );
+        cam.rotatePitch(-20);
 
         //Materials
         Material gold = new Material(
-                Color.ofRGB(255, 200, 40).toVec3(),
-                0.6,
-                0.0,   // kein Metall
-                0.0,   // keine Reflection
+                Color.ofRGB(230, 180, 55).toVec3(),
+                0.55,
+                0,
+                0.05,
                 0.0,
                 1.0
         );
 
-        //Tests
+        Material blueGlass = new Material(
+                Color.ofRGB(40,180,255).toVec3(),
+                0.05,
+                0,
+                0.2,
+                0.8,
+                1.45
+        );
+
+        Material silver = new Material(
+                Color.ofRGB(190, 195, 205).toVec3(),
+                0.28,
+                0.4,
+                0.18,
+                0.0,
+                1.0
+        );
+        Material softSilver = new Material(
+                Color.ofRGB(170, 175, 185).toVec3(),
+                0.45,
+                0.15,
+                0.08,
+                0.0,
+                1.0
+        );
+
+
+        //für demo/abgabe
+        Material mirror = new Material(
+                Color.ofRGB(20, 20, 25).toVec3(),
+                0.0,
+                0.0,
+                0.9,
+                0.0,
+                1.0
+        );
+        Material glass = new Material(
+                Color.ofRGB(0, 220, 255).toVec3(),
+                0.02,
+                0.0,
+                0.08,
+                0.65,
+                1.45
+        );
+        Material goldDemo = new Material(Color.ofRGB(245,205,85).toVec3(), 0.25, 0.3, 0.15, 0.0, 1.0);
+
+        Object3D mirrorSphere = Quadric.sphere(Color.white());
+        mirrorSphere.setPosition(new Vec3(-3.2f, -0.4f, 1.5f));
+        mirrorSphere.setMaterial(mirror);
+
+        Object3D glassSphere = Quadric.sphere(Color.cyan());
+        glassSphere.setPosition(new Vec3(3.2f, -0.4f, 1.5f));
+        glassSphere.setMaterial(glass);
+
+        Object3D goldSphere = Quadric.sphere(Color.yellow());
+        goldSphere.setPosition(new Vec3(0f, -0.4f, 2.7f));
+        goldSphere.setMaterial(goldDemo);
+
+        mirrorSphere.setScale(new Vec3(0.5f, 0.5f, 0.5f));
+        glassSphere.setScale(new Vec3(0.5f, 0.5f, 0.5f));
+        goldSphere.setScale(new Vec3(0.5f, 0.5f, 0.5f));
+
+        Object3D test = Quadric.cylinderY(Color.red());
+        test.setScale(new Vec3(0.12f, 1.0f, 0.12f));
+        test.setPosition(new Vec3(3.2f, -0.3f, -1.2f));
+
+        Object3D redSphere = Quadric.sphere(Color.red());
+        redSphere.setScale(new Vec3(0.8f, 0.8f, 0.8f));
+        redSphere.setPosition(new Vec3(-6f, -0.5f, 1.0f));
+
+
+        //photon cannon die irgendwie nicht will ich
         Object3D floorBase = Quadric.cylinderY(Color.gray());
 
         floorBase.setScale(new Vec3(2f, 1f, 2f));
+        floorBase.setMaterial(gold);
 
         Object3D floor = new Cut(
                 new Cut(floorBase, HalfSpace.yLess(-1.1f, Color.gray())),
@@ -64,6 +140,7 @@ public class Main {
 
         Object3D emblemBeforCut = Quadric.cylinderY(Color.cyan());
         emblemBeforCut.setScale(new Vec3(0.750f, 1, 0.750f));
+        emblemBeforCut.setMaterial(blueGlass);
 
         Object3D emblem = new Cut(
                 new Cut(emblemBeforCut, HalfSpace.yLess(-1.0f, Color.blue())),
@@ -85,27 +162,52 @@ public class Main {
                 HalfSpace.yGreater(-1.2f, Color.gray())
         );
 
+        Object3D middleBall = Quadric.sphere(Color.gray());
+        middleBall.setScale(new Vec3(0.75f, 0.75f, 0.75f));
+        middleBall.setPosition(new Vec3(0f, 0.75f, 0f));
+        middleBall.setMaterial(softSilver);
+
         Object3D sphereForCut = Quadric.sphere(Color.gray());
         sphereForCut.setScale(new Vec3(1.8f, 2.5f, 1.8f));
 
         Object3D outerRing = new Diff(outerRingBeforDiffWithSpehere,sphereForCut);
 
-        Object3D petalRight = createPetalWithBiggerY(1.9f, -0.2f, 0f, 0f);
-        Object3D petalLeft  = createPetalWithBiggerY(-1.9f, -0.2f, 0f, 0f);
+        Object3D petalRight = createLargePetal(1.9f, -0.2f, 0f, LargePetalSide.RIGHT);
+        Object3D petalLeft  = createLargePetal(-1.9f, -0.2f, 0f, LargePetalSide.LEFT);
 
-        Object3D petalFront = createPetalWithBiggerY(0f, -0.2f, 1.9f, 90f);
-        Object3D petalBack  = createPetalWithBiggerY(0f, -0.2f, -1.9f, 270f);
+        Object3D petalFront = createLargePetal(0f, -0.2f, 1.9f, LargePetalSide.FRONT);
+        Object3D petalBack  = createLargePetal(0f, -0.2f, -1.9f, LargePetalSide.BACK);
 
-        Object3D[] objects = new Object3D[] {floor, emblem, outerRing, petalRight, petalLeft, petalFront, petalBack};
+        Object3D smallPetalRightFront = createLargePetal( 1.5f, -0.2f,   1.5f, LargePetalSide.RIGHT);
+        Object3D smallPetalRightBack  = createLargePetal(-1.5f, -0.2f,    1.5f, LargePetalSide.RIGHT);
+        Object3D smallPetalLeftFront  = createLargePetal( 1.5f, -0.2f,   -1.5f, LargePetalSide.RIGHT);
+        Object3D smallPetalLeftBack   = createLargePetal(-1.5f, -0.2f,   -1.5f, LargePetalSide.RIGHT);
+
+        smallPetalRightFront.setRotation(new Vec3(0, 45, 0));
+        smallPetalRightBack.setRotation(new Vec3(0, 125, 0));
+        smallPetalLeftFront.setRotation(new Vec3(0, 225, 0));
+        smallPetalLeftBack.setRotation(new Vec3(0, 315, 0));
+
+        /*Object3D[] objects = new Object3D[] {
+                floor, emblem, outerRing, middleBall,
+                petalRight, petalLeft, petalFront, petalBack,
+                smallPetalRightFront, smallPetalRightBack, smallPetalLeftFront, smallPetalLeftBack,
+                mirrorSphere, glassSphere, goldSphere, test, redSphere
+        };*/
+
+        Object3D[] objects = new Object3D[] {
+                mirrorSphere, glassSphere, goldSphere, test, redSphere
+        };
 
 
         Light[] lights = new Light[] {
-                new Light(new Vec3(3, 5, 5), 1.2),
-                new Light(new Vec3(-4, 3, 2), 0.5),
-                new Light(new Vec3(0, -15,0), 1.0)
+                new Light(new Vec3(0, -5, -4), 2.0),
+                new Light(new Vec3(3, 5, 4), 0.8),
+                new Light(new Vec3(-3, 3, 3), 0.6)
         };
 
         Scene scene = new Scene(cam, objects, lights);
+        scene.setBackgroundColor(Color.ofRGB(28, 30, 42));
 
         // === Initiales Rendern ===
         RayTracer.render(resX, resY, scene, pixels);
@@ -118,49 +220,87 @@ public class Main {
         frame.requestFocus();
     }
 
-    private static Object3D createPetalWithBiggerY(float x, float y, float z, float rotY) {
-        Object3D petalBase = Quadric.cylinderY(Color.gray());
-        petalBase.setScale(new Vec3(1.2f, 1f, 0.75f));
+    private enum LargePetalSide {
+        LEFT, RIGHT, FRONT, BACK
+    }
 
-        Object3D cutY = new Cut(
-                new Cut(petalBase, HalfSpace.yLess(-0.25f, Color.gray())),
+    private enum DiagonalPetalSide {
+        RIGHT_FRONT, RIGHT_BACK, LEFT_FRONT, LEFT_BACK
+    }
+
+    private static Object3D createLargePetal(float x, float y, float z, LargePetalSide side) {
+
+        Material gold = new Material(
+                Color.ofRGB(230, 180, 55).toVec3(),
+                0.55,
+                0.0,
+                0.05,
+                0.0,
+                1.0
+        );
+
+        Object3D petalBase = Quadric.paraboloidY(Color.gray());
+        petalBase.setMaterial(gold);
+        Object3D cutBack = new Cut(
+                new Cut(petalBase, HalfSpace.yLess(-0f, Color.gray())),
                 HalfSpace.yGreater(-1.2f, Color.gray())
         );
 
-        Object3D cutZ = new Cut(
-                new Cut(cutY, HalfSpace.zLess(0.25f, Color.gray())),
-                HalfSpace.zGreater(-0.25f, Color.gray())
+
+        float widthOfPadle = 0.5f;
+        float cylinderXScale = 0.75f;
+        float cylinderYScale = 0.75f;
+        float cylinderZScale = 1.5f;
+        Object3D innerRoundDiff;
+
+         switch (side) {
+             case RIGHT:
+                 cutBack = clampZ(cutBack, widthOfPadle, Color.gray());
+                 innerRoundDiff = Quadric.cylinderZ(Color.gray());
+                 innerRoundDiff.setScale(new Vec3(cylinderXScale, cylinderYScale, cylinderZScale));
+                 innerRoundDiff.setPosition(new Vec3(-0.55f, -0.35f, 0.0f));
+                 cutBack = new Diff(cutBack, innerRoundDiff);
+                 break;
+             case LEFT:
+                 cutBack = clampZ(cutBack, widthOfPadle, Color.gray());
+                 innerRoundDiff = Quadric.cylinderZ(Color.gray());
+                 innerRoundDiff.setScale(new Vec3(cylinderXScale, cylinderYScale, cylinderZScale));
+                 innerRoundDiff.setPosition(new Vec3(0.55f, -0.35f, 0.0f));
+                 cutBack = new Diff(cutBack, innerRoundDiff);
+                 break;
+             case FRONT:
+                 cutBack = clampX(cutBack, widthOfPadle, Color.gray());
+                 innerRoundDiff = Quadric.cylinderX(Color.gray());
+                 innerRoundDiff.setScale(new Vec3(cylinderZScale, cylinderYScale, cylinderXScale));
+                 innerRoundDiff.setPosition(new Vec3(0.0f, -0.5f, -0.75f));
+                 cutBack = new Diff(cutBack, innerRoundDiff);
+                 break;
+             case BACK:
+                 cutBack = clampX(cutBack, widthOfPadle, Color.gray());
+                 innerRoundDiff = Quadric.cylinderX(Color.gray());
+                 innerRoundDiff.setScale(new Vec3(cylinderZScale, cylinderYScale, cylinderXScale));
+                 innerRoundDiff.setPosition(new Vec3(0.0f, -0.5f, 0.75f));
+                 cutBack = new Diff(cutBack, innerRoundDiff);
+                 break;
+         }
+
+
+        cutBack.setPosition(new Vec3(x, y, z));
+        return cutBack;
+    }
+
+    private static Object3D clampX(Object3D object, float halfWidth, Color color) {
+        return new Cut(
+                new Cut(object, HalfSpace.xGreater(-halfWidth, color)),
+                HalfSpace.xLess(halfWidth, color)
         );
+    }
 
-        Object3D cutBack = new Cut(
-                cutZ,
-                HalfSpace.xGreater(-0.8f, Color.gray())
+    private static Object3D clampZ(Object3D object, float halfWidth, Color color) {
+        return new Cut(
+                new Cut(object, HalfSpace.zGreater(-halfWidth, color)),
+                HalfSpace.zLess(halfWidth, color)
         );
-
-        Object3D cutSlope = new Cut(
-                cutBack,
-                slopeLeft(0.75f, -0f, Color.gray())
-        );
-
-        Object3D innerRoundCut = Quadric.cylinderZ(Color.gray());
-        innerRoundCut.setScale(new Vec3(0.95f, 1.25f, 1f));
-        innerRoundCut.setPosition(new Vec3(-0.95f, -0.2f, 0f));
-
-        Object3D diffInnerSide = new Diff(
-                cutSlope,
-                innerRoundCut
-        );
-
-        Object3D cutRightSide = new Cut(
-                diffInnerSide,
-                HalfSpace.xLess(0.55f, Color.gray())
-        );
-
-
-        cutRightSide.setRotation(new Vec3(0, rotY, 0));
-        cutRightSide.setPosition(new Vec3(x, y, z));
-
-        return cutRightSide;
     }
 
     public static HalfSpace slopeLeft(float slope, float distance, Color color) {

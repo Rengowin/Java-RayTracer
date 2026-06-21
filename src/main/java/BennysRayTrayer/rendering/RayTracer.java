@@ -54,7 +54,7 @@ public class RayTracer {
         Vec3 N = hit.normal;
         Vec3 V = cam.getPosition().sub(hitPoint).normalize();
 
-        Vec3 pixelColor = new Vec3(0, 0, 0);
+        Vec3 pixelColor = new Vec3(0.08f, 0.08f, 0.08f);
         Material mat = hit.object.getMaterial();
 
         for (Light light : lights) {
@@ -93,6 +93,12 @@ public class RayTracer {
         for (Object3D object : objects) {
             Hit hit = object.intersect(shadowRay);
             if (hit != null && hit.t > 0 && hit.t < lightDist) {
+                Material mat = hit.object.getMaterial();
+
+                if (mat != null && mat.transparency > 0.5) {
+                    continue;
+                }
+
                 return true;
             }
         }
@@ -121,9 +127,9 @@ public class RayTracer {
 
         Vec3 I = ray.direction.normalize();
         Vec3 N = hit.normal.normalize();
+
         double n1 = 1.0;
         double n2 = mat.refractiveIndex;
-
 
         if (I.dot(N) > 0) {
             N = N.mul(-1);
@@ -131,13 +137,7 @@ public class RayTracer {
             n2 = 1.0;
         }
 
-        Vec3 result;
-
-        if (mat.transparency > 0) {
-            result = localColor.mul((float)(1.0 - mat.transparency));
-        } else {
-            result = localColor;
-        }
+        Vec3 result = localColor;
 
         if (mat.reflectionStrength > 0) {
             Vec3 reflectDir = reflect(I, N);
