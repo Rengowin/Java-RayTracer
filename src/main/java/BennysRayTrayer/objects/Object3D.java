@@ -87,6 +87,12 @@ public abstract class Object3D {
                         interval.normalEnter, 
                         interval.objectEnter);
             }
+            if (interval.tExit > EPS) {
+                return new Hit(interval.tExit,
+                        ray.origin.add(ray.direction.mul((float) interval.tExit)),
+                        interval.normalExit,
+                        interval.objectExit);
+            }
         }
         return null;
     }

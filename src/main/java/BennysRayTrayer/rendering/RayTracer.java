@@ -9,6 +9,10 @@ import BennysRayTrayer.scene.Scene;
 
 public class RayTracer {
 
+    //TODO: SHADOWRAY FIXEN (bei denn csg)
+    //scahuen ob nur geht wenn der startpunkt aushalb liegt
+    //bei einer spehere einen cylinder
+
     static int depth = 3;
 
     public static void setDepth(int depth) {
@@ -18,7 +22,7 @@ public class RayTracer {
         return depth;
     }
 
-    public static void render(int resX, int resY, Scene scene, int[] pixels) {
+    /*public static void render(int resX, int resY, Scene scene, int[] pixels) {
         Camera cam = scene.getCamera();
         Object3D[] objects = scene.getObjects();
         Light[] lights = scene.getLights();
@@ -26,11 +30,42 @@ public class RayTracer {
 
         Vec3 camPos = cam.getPosition();
         for (int y = 0; y < resY; y++) {
-            for (int x = 0; x < resX; x++) {
-                Ray ray = cam.generateRay(x, y, resX, resY);
-                Vec3 pixelColor = traceRay(ray, scene, depth);
-                pixels[y * resX + x] = colorToPixel(pixelColor);
+            //TODO: das y besser rüber geben
+            final int yy = y;
+            new Thread(() -> {
+                for (int x = 0; x < resX; x++) {
+                    Ray ray = cam.generateRay(x, yy, resX, resY);
+                    Vec3 pixelColor = traceRay(ray, scene, depth);
+                    pixels[yy * resX + x] = colorToPixel(pixelColor);
+                }
+            }).start();
+        }
+    }*/
+
+    public static void render(int resX, int resY, Scene scene, int[] pixels) {
+        Camera cam = scene.getCamera();
+
+        int cores = Runtime.getRuntime().availableProcessors();
+
+        try (var executor = java.util.concurrent.Executors.newFixedThreadPool(cores)) {
+            java.util.List<java.util.concurrent.Callable<Void>> jobs = new java.util.ArrayList<>();
+
+            for (int y = 0; y < resY; y++) {
+                final int yy = y;
+
+                jobs.add(() -> {
+                    for (int x = 0; x < resX; x++) {
+                        Ray ray = cam.generateRay(x, yy, resX, resY);
+                        Vec3 pixelColor = traceRay(ray, scene, depth);
+                        pixels[yy * resX + x] = colorToPixel(pixelColor);
+                    }
+                    return null;
+                });
             }
+
+            executor.invokeAll(jobs); // wartet bis ALLE Zeilen fertig sind
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
         }
     }
 
@@ -61,7 +96,7 @@ public class RayTracer {
             Vec3 L = light.getPosition().sub(hitPoint).normalize();
 
             // Prüfe, ob der Punkt im Schatten liegt
-            if (!isInShadow(hitPoint, light, objects)) {
+            //if (!isInShadow(hitPoint, light, objects)) {
                 if (mat != null) {
                     Vec3 lightColor = light.getColorVec3();
                     if (lightColor == null || lightColor.length() == 0) {
@@ -79,7 +114,7 @@ public class RayTracer {
                         pixelColor = pixelColor.add(objColor.mul(intensity));
                     }
                 }
-            }
+            //}
         }
 
         return pixelColor;

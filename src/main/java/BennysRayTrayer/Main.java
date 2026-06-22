@@ -46,6 +46,12 @@ public class Main {
         );
         cam.rotatePitch(-20);
 
+        /*Camera cam = new Camera(
+                new Vec3(0, 0, 5),
+                60,
+                new Vec3(0, 0, -1)
+        );*/
+
         //Materials
         Material gold = new Material(
                 Color.ofRGB(230, 180, 55).toVec3(),
@@ -93,12 +99,12 @@ public class Main {
                 1.0
         );
         Material glass = new Material(
-                Color.ofRGB(0, 220, 255).toVec3(),
-                0.02,
+                Color.white().toVec3(),   // oder ganz leicht blau
+                0.01,
                 0.0,
-                0.08,
-                0.65,
-                1.45
+                0.05,
+                0.95,
+                3
         );
         Material goldDemo = new Material(Color.ofRGB(245,205,85).toVec3(), 0.25, 0.3, 0.15, 0.0, 1.0);
 
@@ -126,6 +132,9 @@ public class Main {
         redSphere.setScale(new Vec3(0.8f, 0.8f, 0.8f));
         redSphere.setPosition(new Vec3(-6f, -0.5f, 1.0f));
 
+        Object3D behindGlass = Quadric.sphere(Color.red());
+        behindGlass.setScale(new Vec3(0.7f, 0.7f, 0.7f));
+        behindGlass.setPosition(new Vec3(3.2f, -0.4f, 0.3f));
 
         //photon cannon die irgendwie nicht will ich
         Object3D floorBase = Quadric.cylinderY(Color.gray());
@@ -188,16 +197,34 @@ public class Main {
         smallPetalLeftFront.setRotation(new Vec3(0, 225, 0));
         smallPetalLeftBack.setRotation(new Vec3(0, 315, 0));
 
-        /*Object3D[] objects = new Object3D[] {
+        Object3D[] objects = new Object3D[] {
                 floor, emblem, outerRing, middleBall,
                 petalRight, petalLeft, petalFront, petalBack,
                 smallPetalRightFront, smallPetalRightBack, smallPetalLeftFront, smallPetalLeftBack,
+                mirrorSphere, glassSphere, goldSphere, test, redSphere, behindGlass
+        };
+
+        /*Object3D[] objects = new Object3D[] {
                 mirrorSphere, glassSphere, goldSphere, test, redSphere
         };*/
 
-        Object3D[] objects = new Object3D[] {
-                mirrorSphere, glassSphere, goldSphere, test, redSphere
-        };
+        /*Object3D[] objects = new Object3D[] {
+                floor, emblem,// outerRing, middleBall,
+                petalRight, petalLeft
+        };*/
+
+        //dumme test um zuscahuen ob es an den csg operatoren liegt weil die richtung kammer schneide
+
+        Object3D testShere = Quadric.sphere(Color.red());
+
+        Object3D testCylinder = Quadric.cylinderZ(Color.red());
+        testCylinder.setScale(new Vec3(0.5f, 0.5f, 0.5f));
+
+        Object3D diff = new Diff(testShere, testCylinder);
+
+        /*Object3D[] objects = new Object3D[]{
+                diff
+        };*/
 
 
         Light[] lights = new Light[] {

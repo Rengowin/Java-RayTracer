@@ -281,9 +281,10 @@ public class Quadric extends Object3D {
             }
 
             // Falls nur t1 positiv ist
-            if (t1 < EPS) {
+            //TODO: beide sotiert zuruck geben weil sonnst wenn in der kammera dahinter mäßig
+            /*if (t1 < EPS) {
                 t1 = t2;
-            }
+            }*/
 
             double tEnter = Math.min(t1, t2);
             double tExit = Math.max(t1, t2);
