@@ -136,6 +136,8 @@ public class Main {
         behindGlass.setScale(new Vec3(0.7f, 0.7f, 0.7f));
         behindGlass.setPosition(new Vec3(3.2f, -0.4f, 0.3f));
 
+        Object3D floorDemo = HalfSpace.yGreater(-1.2f, Color.gray());
+
         //photon cannon die irgendwie nicht will ich
         Object3D floorBase = Quadric.cylinderY(Color.gray());
 
@@ -201,7 +203,7 @@ public class Main {
                 floor, emblem, outerRing, middleBall,
                 petalRight, petalLeft, petalFront, petalBack,
                 smallPetalRightFront, smallPetalRightBack, smallPetalLeftFront, smallPetalLeftBack,
-                mirrorSphere, glassSphere, goldSphere, test, redSphere, behindGlass
+                mirrorSphere, glassSphere, goldSphere, test, redSphere, behindGlass, floorDemo
         };
 
         /*Object3D[] objects = new Object3D[] {

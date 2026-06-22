@@ -96,7 +96,7 @@ public class RayTracer {
             Vec3 L = light.getPosition().sub(hitPoint).normalize();
 
             // Prüfe, ob der Punkt im Schatten liegt
-            //if (!isInShadow(hitPoint, light, objects)) {
+            if (!isInShadow(hitPoint, light, objects)) {
                 if (mat != null) {
                     Vec3 lightColor = light.getColorVec3();
                     if (lightColor == null || lightColor.length() == 0) {
@@ -114,7 +114,7 @@ public class RayTracer {
                         pixelColor = pixelColor.add(objColor.mul(intensity));
                     }
                 }
-            //}
+            }
         }
 
         return pixelColor;
