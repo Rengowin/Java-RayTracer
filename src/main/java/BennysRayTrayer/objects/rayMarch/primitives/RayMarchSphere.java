@@ -1,7 +1,8 @@
-package BennysRayTrayer.objects.rayMarch;
+package BennysRayTrayer.objects.rayMarch.primitives;
 
 import BennysRayTrayer.core.Vec3;
 import BennysRayTrayer.objects.Color;
+import BennysRayTrayer.objects.rayMarch.RayMarchObject;
 import BennysRayTrayer.rendering.Material;
 
 public class RayMarchSphere extends RayMarchObject {

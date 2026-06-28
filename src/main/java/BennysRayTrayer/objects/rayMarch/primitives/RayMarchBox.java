@@ -1,23 +1,24 @@
-package BennysRayTrayer.objects.rayMarch;
+package BennysRayTrayer.objects.rayMarch.primitives;
 
 import BennysRayTrayer.core.Vec3;
 import BennysRayTrayer.objects.Color;
+import BennysRayTrayer.objects.rayMarch.RayMarchObject;
 import BennysRayTrayer.rendering.Material;
 
-public class RayMarchCube extends RayMarchObject{
+public class RayMarchBox extends RayMarchObject {
 
     private Vec3 halfSize;
 
-    public RayMarchCube(Vec3 halfSize) {
+    public RayMarchBox(Vec3 halfSize) {
         this.halfSize = halfSize;
     }
 
-    public RayMarchCube(Vec3 halfSize, Color color) {
+    public RayMarchBox(Vec3 halfSize, Color color) {
         super(color);
         this.halfSize = halfSize;
     }
 
-    public RayMarchCube(Vec3 halfSize, Material material) {
+    public RayMarchBox(Vec3 halfSize, Material material) {
         super(material);
         this.halfSize = halfSize;
     }
