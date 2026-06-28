@@ -1,14 +1,15 @@
-package BennysRayTrayer.objects;
+package BennysRayTrayer.objects.csg;
 
 import BennysRayTrayer.core.HitInterval;
 import BennysRayTrayer.core.Ray;
 import BennysRayTrayer.core.Vec3;
+import BennysRayTrayer.objects.Object3D;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class Cut extends Object3D{
+public class Cut extends Object3D {
 
     Object3D a;
     Object3D b;
@@ -46,20 +47,25 @@ public class Cut extends Object3D{
                 double overlapEnd = Math.min(ia.tExit, ib.tExit);
 
                 if (overlapStart < overlapEnd - EPS) {
-                    // Es gibt eine Überlappung
-                    Vec3 normalEnter = (ia.tEnter >= ib.tEnter)
-                            ? ia.normalEnter
-                            : ib.normalEnter;
+                    boolean enterFromA = ia.tEnter >= ib.tEnter;
+                    boolean exitFromA  = ia.tExit <= ib.tExit;
 
-                    Vec3 normalExit = (ia.tExit <= ib.tExit)
-                            ? ia.normalExit
-                            : ib.normalExit;
+                    Vec3 normalEnter = enterFromA ? ia.normalEnter : ib.normalEnter;
+                    Vec3 normalExit  = exitFromA  ? ia.normalExit  : ib.normalExit;
 
-                    Vec3 worldNormalEnter = toWorldDirection(normalEnter).normalize();
-                    Vec3 worldNormalExit = toWorldDirection(normalExit).normalize();
+                    Object3D objectEnter = enterFromA ? ia.objectEnter : ib.objectEnter;
+                    Object3D objectExit  = exitFromA  ? ia.objectExit  : ib.objectExit;
 
-                    result.add(new HitInterval(overlapStart, overlapEnd, 
-                            worldNormalEnter, worldNormalExit, ia.objectEnter));
+                    HitInterval hi = new HitInterval(
+                            overlapStart,
+                            overlapEnd,
+                            toWorldDirection(normalEnter).normalize(),
+                            toWorldDirection(normalExit).normalize(),
+                            objectEnter
+                    );
+                    hi.objectExit = objectExit;
+
+                    result.add(hi);
                 }
             }
         }

@@ -49,4 +49,11 @@ public class Scene {
     public void setBackgroundColor(Vec3 color) {
         this.backgroundColor = (color == null) ? null : Color.of(color.x, color.y, color.z);
     }
+
+    public void addObject(Object3D object) {
+        Object3D[] newObjects = new Object3D[objects.length + 1];
+        System.arraycopy(objects, 0, newObjects, 0, objects.length);
+        newObjects[objects.length] = object;
+        objects = newObjects;
+    }
 }

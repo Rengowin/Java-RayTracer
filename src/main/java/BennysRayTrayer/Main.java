@@ -3,9 +3,13 @@ package BennysRayTrayer;
 import BennysRayTrayer.core.*;
 import BennysRayTrayer.input.Input;
 import BennysRayTrayer.objects.*;
+import BennysRayTrayer.objects.csg.Cut;
+import BennysRayTrayer.objects.csg.Diff;
+import BennysRayTrayer.objects.rayMarch.RayMarchObject;
+import BennysRayTrayer.objects.rayMarch.RayMarchSphere;
+import BennysRayTrayer.objects.rayMarch.RayMarchCube;
 import BennysRayTrayer.rendering.*;
 import BennysRayTrayer.scene.*;
-
 
 import java.awt.Image;
 import java.awt.Toolkit;
@@ -52,61 +56,71 @@ public class Main {
                 new Vec3(0, 0, -1)
         );*/
 
-        //Materials
+        // ============ VERBESSERTE MATERIALIEN ============
         Material gold = new Material(
                 Color.ofRGB(230, 180, 55).toVec3(),
-                0.55,
-                0,
-                0.05,
-                0.0,
+                0.45,   // roughness (mittelmäßig)
+                0.65,   // metallic (sehr metallisch)
+                0.15,   // reflectionStrength
+                0.0,    // transparency
                 1.0
         );
 
         Material blueGlass = new Material(
-                Color.ofRGB(40,180,255).toVec3(),
-                0.05,
-                0,
-                0.2,
-                0.8,
+                Color.ofRGB(40, 180, 255).toVec3(),
+                0.02,   // sehr glatt
+                0.0,    // nicht metallisch
+                0.1,    // wenig Reflexion
+                0.85,   // sehr transparent
                 1.45
         );
 
         Material silver = new Material(
                 Color.ofRGB(190, 195, 205).toVec3(),
-                0.28,
-                0.4,
-                0.18,
+                0.2,    // sehr glatt
+                0.8,    // sehr metallisch
+                0.35,   // starke Reflexion
                 0.0,
                 1.0
         );
+
         Material softSilver = new Material(
                 Color.ofRGB(170, 175, 185).toVec3(),
-                0.45,
-                0.15,
-                0.08,
+                0.35,   // moderater Glanz
+                0.5,    // moderater Metallic
+                0.12,   // schwache Reflexion
                 0.0,
                 1.0
         );
 
-
-        //für demo/abgabe
+        // Mirror: Ultra-glatt und reflektiv
         Material mirror = new Material(
-                Color.ofRGB(20, 20, 25).toVec3(),
-                0.0,
-                0.0,
-                0.9,
+                Color.ofRGB(15, 15, 20).toVec3(),
+                0.02,   // ultra glatt
+                0.95,   // maximaler Metallic
+                0.95,   // sehr starke Reflexion
                 0.0,
                 1.0
         );
+
+        // High-quality Glass: klar und transparent
         Material glass = new Material(
-                Color.white().toVec3(),   // oder ganz leicht blau
-                0.01,
-                0.0,
-                0.05,
-                0.95,
-                3
+                Color.white().toVec3(),
+                0.005,  // ultra glatt
+                0.0,    // nicht metallisch
+                0.08,   // schwache Reflexion (Fresnel-Effekt)
+                0.96,   // fast vollständig transparent
+                1.5     // höherer Brechungsindex = stärkere Brechung
         );
-        Material goldDemo = new Material(Color.ofRGB(245,205,85).toVec3(), 0.25, 0.3, 0.15, 0.0, 1.0);
+
+        Material goldDemo = new Material(
+                Color.ofRGB(245, 205, 85).toVec3(),
+                0.2,    // glatt
+                0.7,    // metallisch
+                0.25,   // Reflexion
+                0.0,
+                1.0
+        );
 
         Object3D mirrorSphere = Quadric.sphere(Color.white());
         mirrorSphere.setPosition(new Vec3(-3.2f, -0.4f, 1.5f));
@@ -199,34 +213,62 @@ public class Main {
         smallPetalLeftFront.setRotation(new Vec3(0, 225, 0));
         smallPetalLeftBack.setRotation(new Vec3(0, 315, 0));
 
-        Object3D[] objects = new Object3D[] {
+        // ============ RAYMARCHING OBJEKTE ============
+        // Verbesserte Materialien für Raymarching
+        Material raymarchGold = new Material(
+                Color.ofRGB(255, 200, 80).toVec3(),
+                0.3,   // roughness (niedriger = glänzender)
+                0.7,   // metallic
+                0.25,  // reflectionStrength
+                0.0,   // transparency
+                1.0    // refractiveIndex
+        );
+
+        Material raymarchMagenta = new Material(
+                Color.ofRGB(200, 50, 200).toVec3(),
+                0.25,
+                0.6,
+                0.3,
+                0.0,
+                1.0
+        );
+
+        Material raymarchCyan = new Material(
+                Color.ofRGB(50, 200, 255).toVec3(),
+                0.2,
+                0.8,
+                0.4,
+                0.0,
+                1.0
+        );
+
+        RayMarchObject testRayMarch = new RayMarchSphere(
+                1.0f,                  // Radius
+                raymarchGold           // Material
+        );
+
+        RayMarchObject testRayMarchCube = new RayMarchCube(
+                new Vec3(1,1,1),                // Size
+                raymarchMagenta        // Material
+        );
+
+        testRayMarch.setPosition(new Vec3(0f, -0.2f, 2.7f));
+        testRayMarchCube.setPosition(new Vec3(3.2f, -0.4f, 1.5f));
+
+
+
+
+        // Objects-Array mit Raymarching erweitern
+        /*Object3D[] objects = new Object3D[] {
                 floor, emblem, outerRing, middleBall,
                 petalRight, petalLeft, petalFront, petalBack,
                 smallPetalRightFront, smallPetalRightBack, smallPetalLeftFront, smallPetalLeftBack,
-                mirrorSphere, glassSphere, goldSphere, test, redSphere, behindGlass, floorDemo
+                mirrorSphere, glassSphere, goldSphere, test, redSphere, behindGlass, floorDemo,
+        };*/
+
+        Object3D[] objects = new Object3D[] {
+                testRayMarch, testRayMarchCube
         };
-
-        /*Object3D[] objects = new Object3D[] {
-                mirrorSphere, glassSphere, goldSphere, test, redSphere
-        };*/
-
-        /*Object3D[] objects = new Object3D[] {
-                floor, emblem,// outerRing, middleBall,
-                petalRight, petalLeft
-        };*/
-
-        //dumme test um zuscahuen ob es an den csg operatoren liegt weil die richtung kammer schneide
-
-        Object3D testShere = Quadric.sphere(Color.red());
-
-        Object3D testCylinder = Quadric.cylinderZ(Color.red());
-        testCylinder.setScale(new Vec3(0.5f, 0.5f, 0.5f));
-
-        Object3D diff = new Diff(testShere, testCylinder);
-
-        /*Object3D[] objects = new Object3D[]{
-                diff
-        };*/
 
 
         Light[] lights = new Light[] {

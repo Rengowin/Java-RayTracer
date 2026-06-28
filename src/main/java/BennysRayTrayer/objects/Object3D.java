@@ -90,7 +90,7 @@ public abstract class Object3D {
             if (interval.tExit > EPS) {
                 return new Hit(interval.tExit,
                         ray.origin.add(ray.direction.mul((float) interval.tExit)),
-                        interval.normalExit,
+                        interval.normalExit.mul(-1),
                         interval.objectExit);
             }
         }

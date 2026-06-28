@@ -1,8 +1,9 @@
-package BennysRayTrayer.objects;
+package BennysRayTrayer.objects.csg;
 
 import BennysRayTrayer.core.HitInterval;
 import BennysRayTrayer.core.Ray;
 import BennysRayTrayer.core.Vec3;
+import BennysRayTrayer.objects.Object3D;
 
 import java.util.ArrayList;
 import java.util.Collections;

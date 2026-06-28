@@ -86,8 +86,12 @@ public class RayTracer {
 
     private static Vec3 shade(Camera cam, Hit hit, Light[] lights, Object3D[] objects) {
         Vec3 hitPoint = hit.position;
-        Vec3 N = hit.normal;
+        Vec3 N = hit.normal.normalize();
         Vec3 V = cam.getPosition().sub(hitPoint).normalize();
+
+        if (N.dot(V) < 0) {
+            N = N.mul(-1);
+        }
 
         Vec3 pixelColor = new Vec3(0.08f, 0.08f, 0.08f);
         Material mat = hit.object.getMaterial();
