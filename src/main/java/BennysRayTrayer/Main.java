@@ -8,6 +8,8 @@ import BennysRayTrayer.objects.Normal.Quadric;
 import BennysRayTrayer.objects.csg.Cut;
 import BennysRayTrayer.objects.csg.Diff;
 import BennysRayTrayer.objects.rayMarch.RayMarchObject;
+import BennysRayTrayer.objects.rayMarch.operations.SineDisplacement;
+import BennysRayTrayer.objects.rayMarch.operations.SmoothUnion;
 import BennysRayTrayer.objects.rayMarch.primitives.RayMarchSphere;
 import BennysRayTrayer.objects.rayMarch.primitives.RayMarchBox;
 import BennysRayTrayer.rendering.*;
@@ -60,11 +62,11 @@ public class Main {
 
         // ============ VERBESSERTE MATERIALIEN ============
         Material gold = new Material(
-                Color.ofRGB(230, 180, 55).toVec3(),
-                0.45,   // roughness (mittelmäßig)
-                0.65,   // metallic (sehr metallisch)
-                0.15,   // reflectionStrength
-                0.0,    // transparency
+                Color.ofRGB(245, 205, 85).toVec3(),
+                0.35,
+                0.0,
+                0.0,
+                0.0,
                 1.0
         );
 
@@ -118,7 +120,7 @@ public class Main {
         Material goldDemo = new Material(
                 Color.ofRGB(245, 205, 85).toVec3(),
                 0.2,    // glatt
-                0.7,    // metallisch
+                0.3,    // metallisch
                 0.25,   // Reflexion
                 0.0,
                 1.0
@@ -216,65 +218,73 @@ public class Main {
         smallPetalLeftBack.setRotation(new Vec3(0, 315, 0));
 
         // ============ RAYMARCHING OBJEKTE ============
-        // Verbesserte Materialien für Raymarching
-        Material raymarchGold = new Material(
-                Color.ofRGB(255, 200, 80).toVec3(),
-                0.3,   // roughness (niedriger = glänzender)
-                0.7,   // metallic
-                0.25,  // reflectionStrength
-                0.0,   // transparency
-                1.0    // refractiveIndex
-        );
-
-        Material raymarchMagenta = new Material(
-                Color.ofRGB(200, 50, 200).toVec3(),
-                0.25,
-                0.6,
-                0.3,
-                0.0,
-                1.0
-        );
-
-        Material raymarchCyan = new Material(
-                Color.ofRGB(50, 200, 255).toVec3(),
-                0.2,
-                0.8,
-                0.4,
-                0.0,
-                1.0
-        );
 
         RayMarchObject testRayMarch = new RayMarchSphere(
                 1.0f,                  // Radius
-                raymarchGold           // Material
+                gold           // Material
         );
 
-        RayMarchObject testRayMarchCube = new RayMarchBox(
-                new Vec3(1,1,1),                // Size
-                raymarchMagenta        // Material
+        RayMarchObject ground = new RayMarchBox(
+                new Vec3(20f, 0.1f, 20f),
+                new Material(
+                        Color.ofRGB(100, 105, 115).toVec3(),
+                        0.7,
+                        0.0,
+                        0.05,
+                        0.0,
+                        1.0
+                )
         );
+
+        RayMarchObject displacedSphereDemo = new RayMarchSphere(
+                0.9f,
+                silver,
+                new SineDisplacement(0.25, 8.0)
+        );
+
+        RayMarchSphere smoothUnionSphere = new RayMarchSphere(
+                0.8f,
+                gold
+        );
+        smoothUnionSphere.setPosition(new Vec3(-0.55f, 0.0f, 0.0f));
+
+        RayMarchBox smoothUnionBox = new RayMarchBox(
+                new Vec3(0.6f, 0.6f, 0.6f),
+                gold
+        );
+        smoothUnionBox.setPosition(new Vec3(0.55f, -0.05f, 0.0f));
+
+        RayMarchObject smoothUnionDemo = new SmoothUnion(
+                smoothUnionSphere,
+                smoothUnionBox,
+                0.45
+        );
+        smoothUnionDemo.setMaterial(gold);
+
+
+        ground.setPosition(new Vec3(0, -1.3f, 0));
 
         testRayMarch.setPosition(new Vec3(0f, -0.2f, 2.7f));
-        testRayMarchCube.setPosition(new Vec3(3.2f, -0.4f, 1.5f));
+        displacedSphereDemo.setPosition(new Vec3(-3.2f, -0.25f, 2.1f));
+        smoothUnionDemo.setPosition(new Vec3(3.1f, -0.35f, 1.9f));
 
 
 
 
         // Objects-Array mit Raymarching erweitern
-        /*Object3D[] objects = new Object3D[] {
+        Object3D[] objects = new Object3D[] {
                 floor, emblem, outerRing, middleBall,
                 petalRight, petalLeft, petalFront, petalBack,
-                smallPetalRightFront, smallPetalRightBack, smallPetalLeftFront, smallPetalLeftBack,
-                mirrorSphere, glassSphere, goldSphere, test, redSphere, behindGlass, floorDemo,
-        };*/
-
-        Object3D[] objects = new Object3D[] {
-                testRayMarch, testRayMarchCube
+                smallPetalRightFront, smallPetalRightBack,
+                smallPetalLeftFront, smallPetalLeftBack,
+                ground,
+                testRayMarch, displacedSphereDemo,
+                smoothUnionDemo
         };
 
-
         Light[] lights = new Light[] {
-                new Light(new Vec3(0, -5, -4), 2.0),
+                new Light(new Vec3(-6,8,8), 1.4, Color.ofRGB(255, 200, 140)),
+                new Light(new Vec3(0, -5, -4), 0.5),
                 new Light(new Vec3(3, 5, 4), 0.8),
                 new Light(new Vec3(-3, 3, 3), 0.6)
         };
@@ -304,10 +314,10 @@ public class Main {
     private static Object3D createLargePetal(float x, float y, float z, LargePetalSide side) {
 
         Material gold = new Material(
-                Color.ofRGB(230, 180, 55).toVec3(),
-                0.55,
+                Color.ofRGB(245, 205, 85).toVec3(),
+                0.35,
                 0.0,
-                0.05,
+                0.0,
                 0.0,
                 1.0
         );
@@ -330,6 +340,7 @@ public class Main {
              case RIGHT:
                  cutBack = clampZ(cutBack, widthOfPadle, Color.gray());
                  innerRoundDiff = Quadric.cylinderZ(Color.gray());
+                 innerRoundDiff.setMaterial(gold);
                  innerRoundDiff.setScale(new Vec3(cylinderXScale, cylinderYScale, cylinderZScale));
                  innerRoundDiff.setPosition(new Vec3(-0.55f, -0.35f, 0.0f));
                  cutBack = new Diff(cutBack, innerRoundDiff);
@@ -337,6 +348,7 @@ public class Main {
              case LEFT:
                  cutBack = clampZ(cutBack, widthOfPadle, Color.gray());
                  innerRoundDiff = Quadric.cylinderZ(Color.gray());
+                 innerRoundDiff.setMaterial(gold);
                  innerRoundDiff.setScale(new Vec3(cylinderXScale, cylinderYScale, cylinderZScale));
                  innerRoundDiff.setPosition(new Vec3(0.55f, -0.35f, 0.0f));
                  cutBack = new Diff(cutBack, innerRoundDiff);
@@ -344,6 +356,7 @@ public class Main {
              case FRONT:
                  cutBack = clampX(cutBack, widthOfPadle, Color.gray());
                  innerRoundDiff = Quadric.cylinderX(Color.gray());
+                 innerRoundDiff.setMaterial(gold);
                  innerRoundDiff.setScale(new Vec3(cylinderZScale, cylinderYScale, cylinderXScale));
                  innerRoundDiff.setPosition(new Vec3(0.0f, -0.5f, -0.75f));
                  cutBack = new Diff(cutBack, innerRoundDiff);
@@ -351,6 +364,7 @@ public class Main {
              case BACK:
                  cutBack = clampX(cutBack, widthOfPadle, Color.gray());
                  innerRoundDiff = Quadric.cylinderX(Color.gray());
+                 innerRoundDiff.setMaterial(gold);
                  innerRoundDiff.setScale(new Vec3(cylinderZScale, cylinderYScale, cylinderXScale));
                  innerRoundDiff.setPosition(new Vec3(0.0f, -0.5f, 0.75f));
                  cutBack = new Diff(cutBack, innerRoundDiff);

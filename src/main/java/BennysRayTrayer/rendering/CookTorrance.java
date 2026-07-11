@@ -2,96 +2,121 @@ package BennysRayTrayer.rendering;
 
 import BennysRayTrayer.core.Vec3;
 
-//Achtung diese klasse würde mit ki gemacht weil zeit unterschätzt, will ich nochmal neu machen/selbst
-// was daraus gelernt immer die schauen das keine folienen datei in downloads ist :D bzw in chache des browers ist weil sonnst die alten folienen gezeigt werden
-
-/**
- * Cook-Torrance Microfacet BRDF
- *
- *   f_r = (D * F * G) / (4 * NdotV * NdotL)
- *
- *   D  = GGX/Trowbridge-Reitz  (Normalverteilung der Microfacets)
- *   F  = Fresnel-Schlick        (Reflektionsanteil je Winkel)
- *   G  = Smith GGX              (Abschattung der Microfacets)
- *
- * Eingaben:
- *   albedo     – Basisfarbe des Materials
- *   roughness  – Rauheit 0 (glatt) … 1 (maximal rau)
- *   metallic   – Metallgrad 0 (Dielektrikum) … 1 (Metall)
- *   N          – normalisierte Oberflächennormale
- *   V          – normalisierter Blickvektor (Hitpunkt → Kamera)
- *   L          – normalisierter Lichtvektor  (Hitpunkt → Licht)
- *   lightColor – RGB-Farbe der Lichtquelle
- *   lightIntensity – Stärke der Lichtquelle
- */
 public class CookTorrance {
 
     public static Vec3 shade(
-            Vec3 albedo, double roughness, double metallic,
-            Vec3 N, Vec3 V, Vec3 L,
-            Vec3 lightColor, double lightIntensity
+            Vec3 albedo,
+            double roughness,
+            double metallic,
+            Vec3 N,
+            Vec3 V,
+            Vec3 L,
+            Vec3 lightColor,
+            double lightIntensity
     ) {
+        float r = clamp01((float) roughness);
+        float m = clamp01((float) metallic);
+
+        // Verhindert extreme Spitzen bei roughness = 0
+        r = Math.max(r, 0.04f);
+
+        N = N.normalize();
+        V = V.normalize();
+        L = L.normalize();
+
         float NdotL = Math.max(0.0f, N.dot(L));
-        if (NdotL <= 0.0f) return new Vec3(0, 0, 0);
+        float NdotV = Math.max(0.0f, N.dot(V));
 
-        float NdotV = Math.max(1e-4f, N.dot(V));
+        if (NdotL <= 0.0f || NdotV <= 0.0f) {
+            return new Vec3(0, 0, 0);
+        }
 
-        Vec3 H = L.add(V).normalize(); // Halbvektor
+        Vec3 H = V.add(L).normalize();
+
         float NdotH = Math.max(0.0f, N.dot(H));
-        float VdotH = Math.max(0.0f, V.dot(H));
 
-        double alpha  = roughness * roughness;
-        double alpha2 = alpha * alpha;
+        // D: GGX
+        double r2 = r * r;
 
-        // ── D: GGX Normal Distribution ─────────────────────────────────────
-        double denom = (NdotH * NdotH) * (alpha2 - 1.0) + 1.0;
-        double D = alpha2 / (Math.PI * denom * denom);
+        double denominator =
+                Math.PI
+                        * Math.pow(
+                        NdotH * NdotH * (r2 - 1.0) + 1.0,
+                        2.0
+                );
 
-        // ── F: Fresnel-Schlick ─────────────────────────────────────────────
-        // Dielectrics: F0 ≈ 0.04; Metals: F0 = albedo
-        Vec3 F0 = lerp(new Vec3(0.04f, 0.04f, 0.04f), albedo, (float) metallic);
-        Vec3 F  = fresnelSchlick(VdotH, F0);
+        double D = r2 / Math.max(denominator, 1e-6);
 
-        // ── G: Smith GGX (direct lighting) ────────────────────────────────
-        double k   = (roughness + 1.0) * (roughness + 1.0) / 8.0;
-        double G_V = NdotV / (NdotV * (1.0 - k) + k);
-        double G_L = NdotL / (NdotL * (1.0 - k) + k);
-        double G   = G_V * G_L;
+        // F: Fresnel-Schlick + Metall-Trick
+        Vec3 dielectricF0 = new Vec3(0.04f);
+        Vec3 F0 = lerp(dielectricF0, albedo, m);
+        Vec3 F = fresnelSchlick(NdotV, F0);
 
-        // ── Specular lobe ──────────────────────────────────────────────────
-        float specFactor = (float) (D * G / Math.max(4.0 * NdotV * NdotL, 1e-6));
-        Vec3 specular = mul(F, specFactor);
+        // G: Schlick-GGX nach Vorlesungsvariante
+        float k = r / 2.0f;
 
-        // ── Diffuse lobe (Lambertian) ───────────────────────────────────────
-        // kD = (1 - F) * (1 - metallic)   →  metals have no diffuse
-        Vec3 kD = mul(sub(new Vec3(1, 1, 1), F), (float) (1.0 - metallic));
-        Vec3 diffuse = mul(hadamard(kD, albedo), (float) (1.0 / Math.PI));
+        float gV = NdotV /
+                Math.max(NdotV * (1.0f - k) + k, 1e-6f);
 
-        // ── Combine ────────────────────────────────────────────────────────
-        Vec3 radiance = mul(lightColor, (float) lightIntensity);
-        Vec3 BRDF = diffuse.add(specular);
+        float gL = NdotL /
+                Math.max(NdotL * (1.0f - k) + k, 1e-6f);
 
-        // Multiply by NdotL and radiance (element-wise for colored light)
-        return mul(hadamard(BRDF, radiance), NdotL);
+        float G = gV * gL;
+
+        // ks = D * F * G
+        Vec3 ks = F.mul((float) (D * G));
+        ks = clampVec01(ks);
+
+        // kd = (1 - ks) * (1 - metallic)
+        Vec3 kd = new Vec3(
+                (1.0f - ks.x) * (1.0f - m),
+                (1.0f - ks.y) * (1.0f - m),
+                (1.0f - ks.z) * (1.0f - m)
+        );
+
+        Vec3 diffuse = hadamard(kd, albedo);
+
+        Vec3 brdf = diffuse.add(ks);
+
+        Vec3 radiance = lightColor.mul((float) lightIntensity);
+
+        return hadamard(brdf, radiance).mul(NdotL);
     }
 
-    // ── Helpers ──────────────────────────────────────────────────────────────
-
     private static Vec3 fresnelSchlick(float cosTheta, Vec3 F0) {
-        float pow5 = (float) Math.pow(Math.max(0.0f, 1.0f - cosTheta), 5.0);
-        return F0.add(sub(new Vec3(1, 1, 1), F0).mul(pow5));
+        float value = (float) Math.pow(
+                Math.max(0.0f, 1.0f - cosTheta),
+                5.0
+        );
+
+        return F0.add(
+                new Vec3(1, 1, 1)
+                        .sub(F0)
+                        .mul(value)
+        );
     }
 
     private static Vec3 lerp(Vec3 a, Vec3 b, float t) {
         return a.mul(1.0f - t).add(b.mul(t));
     }
 
-    /** Component-wise Farb-Multiplikation (Hadamard-Produkt) */
-    public static Vec3 hadamard(Vec3 a, Vec3 b) {
-        return new Vec3(a.x * b.x, a.y * b.y, a.z * b.z);
+    private static Vec3 hadamard(Vec3 a, Vec3 b) {
+        return new Vec3(
+                a.x * b.x,
+                a.y * b.y,
+                a.z * b.z
+        );
     }
 
-    private static Vec3 sub(Vec3 a, Vec3 b) { return a.sub(b); }
-    private static Vec3 mul(Vec3 v, float s) { return v.mul(s); }
-}
+    private static float clamp01(float value) {
+        return Math.max(0.0f, Math.min(1.0f, value));
+    }
 
+    private static Vec3 clampVec01(Vec3 value) {
+        return new Vec3(
+                clamp01(value.x),
+                clamp01(value.y),
+                clamp01(value.z)
+        );
+    }
+}

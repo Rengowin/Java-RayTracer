@@ -40,7 +40,16 @@ public class Color {
     }
 
     public static Color ofRGB(int r, int g, int b) {
-        return new Color(r / 255f, g / 255f, b / 255f);
+        float sr = Math.max(0, Math.min(255, r)) / 255.0f;
+        float sg = Math.max(0, Math.min(255, g)) / 255.0f;
+        float sb = Math.max(0, Math.min(255, b)) / 255.0f;
+
+        // sRGB ungefähr in lineare Lichtenergie umwandeln
+        return new Color(
+                (float) Math.pow(sr, 2.2),
+                (float) Math.pow(sg, 2.2),
+                (float) Math.pow(sb, 2.2)
+        );
     }
 
     @Override

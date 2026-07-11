@@ -16,6 +16,18 @@ public class Union extends Object3D {
     public Union(Object3D a, Object3D b) {
         this.a = a;
         this.b = b;
+
+        if (a.getMaterial() != null) {
+            setMaterial(a.getMaterial());
+        } else if (b.getMaterial() != null) {
+            setMaterial(b.getMaterial());
+        }
+
+        if (a.getColor() != null) {
+            setColor(a.getColor());
+        } else if (b.getColor() != null) {
+            setColor(b.getColor());
+        }
     }
 
     @Override

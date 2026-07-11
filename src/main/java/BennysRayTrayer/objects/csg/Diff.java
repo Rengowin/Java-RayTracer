@@ -16,6 +16,18 @@ public class Diff extends Object3D {
     public Diff(Object3D a, Object3D b) {
         this.a = a;
         this.b = b;
+
+        if (a.getMaterial() != null) {
+            setMaterial(a.getMaterial());
+        } else if (b.getMaterial() != null) {
+            setMaterial(b.getMaterial());
+        }
+
+        if (a.getColor() != null) {
+            setColor(a.getColor());
+        } else if (b.getColor() != null) {
+            setColor(b.getColor());
+        }
     }
 
     @Override
@@ -40,12 +52,19 @@ public class Diff extends Object3D {
 
         // A minus B: Teile von A, die NICHT in B liegen
         if (intervalsB == null || intervalsB.isEmpty()) {
-            // B ist leer, also A ungekürzt
             for (HitInterval ia : intervalsA) {
                 Vec3 worldNormalEnter = toWorldDirection(ia.normalEnter).normalize();
                 Vec3 worldNormalExit = toWorldDirection(ia.normalExit).normalize();
-                result.add(new HitInterval(ia.tEnter, ia.tExit, 
-                        worldNormalEnter, worldNormalExit, ia.objectEnter));
+
+                HitInterval hi = new HitInterval(
+                        ia.tEnter,
+                        ia.tExit,
+                        worldNormalEnter,
+                        worldNormalExit,
+                        this
+                );
+                hi.objectExit = this;
+                result.add(hi);
             }
         } else {
             for (HitInterval ia : intervalsA) {
@@ -75,9 +94,9 @@ public class Diff extends Object3D {
                                 overlapStart,
                                 normalEnter,
                                 normalExit,
-                                startObject
+                                this
                         );
-                        hi.objectExit = ib.objectEnter;
+                        hi.objectExit = this;
                         result.add(hi);
                     }
 
@@ -97,9 +116,9 @@ public class Diff extends Object3D {
                             end,
                             normalEnter,
                             normalExit,
-                            startObject
+                            this
                     );
-                    hi.objectExit = ia.objectExit;
+                    hi.objectExit = this;
                     result.add(hi);
                 }
             }

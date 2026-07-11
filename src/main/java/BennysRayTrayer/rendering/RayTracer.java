@@ -15,32 +15,15 @@ public class RayTracer {
 
     static int depth = 3;
 
+    static boolean useFog = true;
+    static float fogDensity = 0.005f;
+
     public static void setDepth(int depth) {
         RayTracer.depth = depth;
     }
     public static int getDepth() {
         return depth;
     }
-
-    /*public static void render(int resX, int resY, Scene scene, int[] pixels) {
-        Camera cam = scene.getCamera();
-        Object3D[] objects = scene.getObjects();
-        Light[] lights = scene.getLights();
-        Vec3 bgColor = scene.getBackgroundColorVec3();
-
-        Vec3 camPos = cam.getPosition();
-        for (int y = 0; y < resY; y++) {
-            //TODO: das y besser rüber geben
-            final int yy = y;
-            new Thread(() -> {
-                for (int x = 0; x < resX; x++) {
-                    Ray ray = cam.generateRay(x, yy, resX, resY);
-                    Vec3 pixelColor = traceRay(ray, scene, depth);
-                    pixels[yy * resX + x] = colorToPixel(pixelColor);
-                }
-            }).start();
-        }
-    }*/
 
     public static void render(int resX, int resY, Scene scene, int[] pixels) {
         Camera cam = scene.getCamera();
@@ -148,64 +131,76 @@ public class RayTracer {
 
         Hit hit = findClosestHit(ray, scene.getObjects());
 
+        Vec3 skydome = skyDome(ray.direction);
+
         if (hit == null) {
-            return scene.getBackgroundColorVec3();
+            return skydome;
         }
 
-        Vec3 localColor = shade(scene.getCamera(), hit, scene.getLights(), scene.getObjects());
+        Vec3 fogColor = skydome.mul(0.75f);
 
-        if (depth <= 0) {
-            return localColor;
-        }
-
-        Material mat = hit.object.getMaterial();
-
-        if (mat == null) {
-            return localColor;
-        }
-
-        Vec3 I = ray.direction.normalize();
-        Vec3 N = hit.normal.normalize();
-
-        double n1 = 1.0;
-        double n2 = mat.refractiveIndex;
-
-        if (I.dot(N) > 0) {
-            N = N.mul(-1);
-            n1 = mat.refractiveIndex;
-            n2 = 1.0;
-        }
+        Vec3 localColor = shade(
+                scene.getCamera(),
+                hit,
+                scene.getLights(),
+                scene.getObjects()
+        );
 
         Vec3 result = localColor;
+        Material mat = hit.object.getMaterial();
 
-        if (mat.reflectionStrength > 0) {
-            Vec3 reflectDir = reflect(I, N);
+        if (depth > 0 && mat != null) {
 
-            Ray reflectRay = new Ray(
-                    hit.position.add(reflectDir.mul(0.001f)),
-                    reflectDir
-            );
+            Vec3 I = ray.direction.normalize();
+            Vec3 N = hit.normal.normalize();
 
-            Vec3 reflectColor = traceRay(reflectRay, scene, depth - 1);
+            double n1 = 1.0;
+            double n2 = mat.refractiveIndex;
 
-            result = result.mul((float)(1.0 - mat.reflectionStrength))
-                    .add(reflectColor.mul((float)mat.reflectionStrength));
-        }
+            if (I.dot(N) > 0) {
+                N = N.mul(-1);
+                n1 = mat.refractiveIndex;
+                n2 = 1.0;
+            }
 
-        if (mat.transparency > 0) {
-            Vec3 refractDir = refract(I, N, n1, n2);
+            if (mat.reflectionStrength > 0) {
+                Vec3 reflectDir = reflect(I, N);
 
-            if (refractDir != null) {
-                Ray refractRay = new Ray(
-                        hit.position.add(refractDir.mul(0.001f)),
-                        refractDir
+                Ray reflectRay = new Ray(
+                        hit.position.add(reflectDir.mul(0.001f)),
+                        reflectDir
                 );
 
-                Vec3 refractColor = traceRay(refractRay, scene, depth - 1);
+                Vec3 reflectColor = traceRay(reflectRay, scene, depth - 1);
 
-                result = result.mul((float)(1.0 - mat.transparency))
-                        .add(refractColor.mul((float)mat.transparency));
+                result = result.mul((float) (1.0 - mat.reflectionStrength))
+                        .add(reflectColor.mul((float) mat.reflectionStrength));
             }
+
+            if (mat.transparency > 0) {
+                Vec3 refractDir = refract(I, N, n1, n2);
+
+                if (refractDir != null) {
+                    Ray refractRay = new Ray(
+                            hit.position.add(refractDir.mul(0.001f)),
+                            refractDir
+                    );
+
+                    Vec3 refractColor = traceRay(refractRay, scene, depth - 1);
+
+                    result = result.mul((float) (1.0 - mat.transparency))
+                            .add(refractColor.mul((float) mat.transparency));
+                }
+            }
+        }
+
+        if (useFog) {
+            result = applyFog(
+                    result,
+                    hit.t,
+                    fogColor,
+                    fogDensity
+            );
         }
 
         return result;
@@ -244,5 +239,50 @@ public class RayTracer {
         float b = (float) Math.sqrt(k);
 
         return I.mul(eta).add(N.mul(eta * a - b)).normalize();
+    }
+
+    public static Vec3 applyFog(Vec3 color, double distance, Vec3 fogColor, double fogDensity){
+        float visibility = (float) Math.exp(-distance * fogDensity);
+        return fogColor.mul(1.0f - visibility).add(color.mul(visibility));
+    }
+
+    public static Vec3 skyDome(Vec3 direction) {
+
+        //Problem gewesen weil cam winkel xD
+        //return new Vec3(0.0f, 0.0f, 4.0f);
+
+        Vec3 dir = direction.normalize();
+
+        float t = (dir.y + 0.25f) / 0.55f;
+        t = Math.max(0.0f, Math.min(1.0f, t));
+        t = t * t * (3.0f - 2.0f * t);
+
+        Vec3 horizon = new Vec3(1.4f, 0.55f, 0.18f);
+        Vec3 zenith  = new Vec3(0.02f, 0.08f, 2.4f);
+
+        Vec3 sky = horizon.mul(1.0f - t)
+                .add(zenith.mul(t));
+
+        Vec3 sunDirection =
+                new Vec3(0.0f, -0.12f, -1.0f).normalize();
+
+        float sunAmount =
+                Math.max(0.0f, dir.dot(sunDirection));
+
+        float sunGlow =
+                (float) Math.pow(sunAmount, 12.0);
+
+        float sunDisc =
+                (float) Math.pow(sunAmount, 500.0);
+
+        Vec3 glowColor =
+                new Vec3(1.8f, 0.8f, 0.25f);
+
+        Vec3 discColor =
+                new Vec3(12.0f, 9.0f, 5.0f);
+
+        return sky
+                .add(glowColor.mul(sunGlow))
+                .add(discColor.mul(sunDisc));
     }
 }

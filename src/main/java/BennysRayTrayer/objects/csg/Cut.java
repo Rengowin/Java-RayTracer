@@ -17,6 +17,18 @@ public class Cut extends Object3D {
     public Cut(Object3D a, Object3D b) {
         this.a = a;
         this.b = b;
+
+        if (a.getMaterial() != null) {
+            setMaterial(a.getMaterial());
+        } else if (b.getMaterial() != null) {
+            setMaterial(b.getMaterial());
+        }
+
+        if (a.getColor() != null) {
+            setColor(a.getColor());
+        } else if (b.getColor() != null) {
+            setColor(b.getColor());
+        }
     }
 
     @Override
@@ -53,17 +65,14 @@ public class Cut extends Object3D {
                     Vec3 normalEnter = enterFromA ? ia.normalEnter : ib.normalEnter;
                     Vec3 normalExit  = exitFromA  ? ia.normalExit  : ib.normalExit;
 
-                    Object3D objectEnter = enterFromA ? ia.objectEnter : ib.objectEnter;
-                    Object3D objectExit  = exitFromA  ? ia.objectExit  : ib.objectExit;
-
                     HitInterval hi = new HitInterval(
                             overlapStart,
                             overlapEnd,
                             toWorldDirection(normalEnter).normalize(),
                             toWorldDirection(normalExit).normalize(),
-                            objectEnter
+                            this
                     );
-                    hi.objectExit = objectExit;
+                    hi.objectExit = this;
 
                     result.add(hi);
                 }
