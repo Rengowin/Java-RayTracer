@@ -16,8 +16,6 @@ public abstract class Object3D {
 
     protected Transform transform;
 
-    //vlt in den contructor packen
-
     public Object3D(Color color, Material material, Transform transform) {
         this.color = color;
         this.material = material;

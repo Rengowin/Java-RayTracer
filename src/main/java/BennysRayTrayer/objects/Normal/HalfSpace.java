@@ -52,24 +52,27 @@ public class HalfSpace extends Object3D {
     }
 
 
-    // vlt nochmal selbst probieren
     @Override
     public List<HitInterval> intersectIntervals(Ray ray) {
         final double EPS = 1e-6;
         List<HitInterval> result = new ArrayList<>();
 
-        float denom = normal.dot(ray.direction);
-        float numer = distance - normal.dot(ray.origin);
+        Vec3 localOrigin = toLocalPoint(ray.origin);
+        Vec3 localDir = toLocalDirection(ray.direction).normalize();
 
-        // Ray parallel zur Ebene
+        Vec3 localNormal = normal;
+        float localDistance = distance;
+
+        float denom = localNormal.dot(localDir);
+        float numer = localDistance - localNormal.dot(localOrigin);
+
         if (Math.abs(denom) < EPS) {
-            if (normal.dot(ray.origin) <= distance) {
-                // komplett im Halbraum
+            if (localNormal.dot(localOrigin) <= localDistance) {
                 result.add(new HitInterval(
                         EPS,
                         Double.MAX_VALUE,
-                        normal.mul(-1),
-                        normal,
+                        toWorldDirection(localNormal.mul(-1)).normalize(),
+                        toWorldDirection(localNormal).normalize(),
                         this
                 ));
             }
@@ -79,22 +82,20 @@ public class HalfSpace extends Object3D {
         double t = numer / denom;
 
         if (denom < 0) {
-            // Ray geht in den Halbraum hinein
             result.add(new HitInterval(
                     Math.max(t, EPS),
                     Double.MAX_VALUE,
-                    normal.mul(-1),
-                    normal,
+                    toWorldDirection(localNormal.mul(-1)).normalize(),
+                    toWorldDirection(localNormal).normalize(),
                     this
             ));
         } else {
-            // Ray verlässt den Halbraum
             if (t > EPS) {
                 result.add(new HitInterval(
                         EPS,
                         t,
-                        normal.mul(-1),
-                        normal,
+                        toWorldDirection(localNormal.mul(-1)).normalize(),
+                        toWorldDirection(localNormal).normalize(),
                         this
                 ));
             }

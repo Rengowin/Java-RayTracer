@@ -18,4 +18,22 @@ public class Material {
         this.transparency = transparency;
         this.refractiveIndex = refractiveIndex;
     }
+
+    public static Material blend(Material matA, Material matB, double weight){
+        if(matA == null && matB == null) return null;
+        if(matA == null) return matB;
+        if(matB == null) return matA;
+
+        weight = Math.max(0, Math.min(1, weight));
+        double w = 1 - weight;
+
+        return new Material(
+                matA.albedo.mul((float) weight).add(matB.albedo.mul((float) w)),
+                matA.roughness * weight + matB.roughness * w,
+                matA.metallic * weight + matB.metallic * w,
+                matA.reflectionStrength * weight + matB.reflectionStrength * w,
+                matA.transparency * weight + matB.transparency * w,
+                matA.refractiveIndex * weight + matB.refractiveIndex * w
+        );
+    }
 }

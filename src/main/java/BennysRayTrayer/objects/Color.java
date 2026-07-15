@@ -56,4 +56,17 @@ public class Color {
     public String toString() {
         return "Color{" + r + "," + g + "," + b + "}";
     }
+
+    public static Vec3 blendColors(Vec3 colorA, Vec3 colorB, double weight) {
+        if (colorA == null && colorB == null) return null;
+        if (colorA == null) return colorB;
+        if (colorB == null) return colorA;
+
+        weight = Math.max(0, Math.min(1, weight));
+        return colorA.mul((float)weight).add(colorB.mul((float)(1.0 - weight)));
+    }
+
+    public Vec3 blendColors(Color colorA, Color colorB, double weight) {
+        return blendColors(colorA.toVec3(), colorB.toVec3(), weight);
+    }
 }

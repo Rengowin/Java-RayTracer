@@ -15,7 +15,7 @@ public class RayTracer {
 
     static int depth = 3;
 
-    static boolean useFog = true;
+    static boolean useFog = false;
     static float fogDensity = 0.005f;
 
     public static void setDepth(int depth) {
@@ -128,7 +128,6 @@ public class RayTracer {
     }
 
     private static Vec3 traceRay(Ray ray, Scene scene, int depth) {
-
         Hit hit = findClosestHit(ray, scene.getObjects());
 
         Vec3 skydome = skyDome(ray.direction);
@@ -249,9 +248,9 @@ public class RayTracer {
     public static Vec3 skyDome(Vec3 direction) {
 
         //Problem gewesen weil cam winkel xD
-        //return new Vec3(0.0f, 0.0f, 4.0f);
+        return new Vec3(0.0f, 0.0f, 0.0f);
 
-        Vec3 dir = direction.normalize();
+        /*Vec3 dir = direction.normalize();
 
         float t = (dir.y + 0.25f) / 0.55f;
         t = Math.max(0.0f, Math.min(1.0f, t));
@@ -283,6 +282,6 @@ public class RayTracer {
 
         return sky
                 .add(glowColor.mul(sunGlow))
-                .add(discColor.mul(sunDisc));
+                .add(discColor.mul(sunDisc));*/
     }
 }

@@ -6,27 +6,27 @@ import BennysRayTrayer.objects.Color;
 import BennysRayTrayer.objects.rayMarch.RayMarchObject;
 import BennysRayTrayer.rendering.Material;
 
-public class SmoothUnion extends RayMarchObject
-{
+public class SmoothCut extends RayMarchObject {
     private final RayMarchObject a;
     private final RayMarchObject b;
     private final double k;
     private final CSGMaterialBlendMode blendMode;
 
-    public SmoothUnion(RayMarchObject a, RayMarchObject b, double k, CSGMaterialBlendMode blendMode) {
+    public SmoothCut(RayMarchObject a, RayMarchObject b, double k, CSGMaterialBlendMode blendMode) {
         this.a = a;
         this.b = b;
         this.k = Math.max(1e-6, k);
+
         this.blendMode = blendMode;
 
         applyMaterialAndColor();
     }
 
-    public SmoothUnion(RayMarchObject a, RayMarchObject b, double k) {
+    public SmoothCut(RayMarchObject a, RayMarchObject b, double k) {
         this(a, b, k, CSGMaterialBlendMode.USE_A);
     }
 
-    public SmoothUnion(RayMarchObject a, RayMarchObject b) {
+    public SmoothCut(RayMarchObject a, RayMarchObject b) {
         this(a, b, 1.0, CSGMaterialBlendMode.USE_A);
     }
 
@@ -134,7 +134,6 @@ public class SmoothUnion extends RayMarchObject
         }
     }
 
-
     @Override
     public double getSDF(Vec3 point) {
         Vec3 pointInA = a.getTransform().worldToLocalPoint(point);
@@ -142,7 +141,7 @@ public class SmoothUnion extends RayMarchObject
 
         double d1 = a.getSDF(pointInA);
         double d2 = b.getSDF(pointInB);
-        double h = Math.max(k - Math.abs(d1 - d2), 0.0) / k;
+        double h = Math.max(k - Math.abs(d1 + d2), 0.0) / k;
         return Math.min(d1, d2) - h * h * k * 0.25;
     }
 }

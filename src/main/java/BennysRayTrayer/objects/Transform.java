@@ -65,17 +65,17 @@ public class Transform {
 
     private void rebuildMatrices() {
         localToWorld = new Matrix4()
-                .scale(scale.x, scale.y, scale.z)
+                .translate(position.x, position.y, position.z)
                 .rotateX((float)Math.toRadians(rotation.x))
                 .rotateY((float)Math.toRadians(rotation.y))
                 .rotateZ((float)Math.toRadians(rotation.z))
-                .translate(position.x, position.y, position.z);
+                .scale(scale.x, scale.y, scale.z);
 
         worldToLocal = new Matrix4()
-                .translate(-position.x, -position.y, -position.z)
+                .scale(1f / scale.x, 1f / scale.y, 1f / scale.z)
                 .rotateZ((float)Math.toRadians(-rotation.z))
                 .rotateY((float)Math.toRadians(-rotation.y))
                 .rotateX((float)Math.toRadians(-rotation.x))
-                .scale(1f / scale.x, 1f / scale.y, 1f / scale.z);
+                .translate(-position.x, -position.y, -position.z);
     }
 }
