@@ -39,11 +39,18 @@ public class RayMarchBox extends RayMarchObject {
                 Math.abs(p.z) - halfSize.z
         );
 
-        double outDist = Math.max(0, Math.max(q.x, Math.max(q.y, q.z)));
+        Vec3 outside = new Vec3(
+                Math.max(q.x, 0),
+                Math.max(q.y, 0),
+                Math.max(q.z, 0)
+        );
 
-        double inDist = Math.min(0, Math.max(q.x, Math.max(q.y, q.z)));
+        double outsideDistance = outside.length();
+        double insideDistance = Math.min(
+                Math.max(q.x, Math.max(q.y, q.z)),
+                0.0
+        );
 
-        return outDist + inDist;
+        return outsideDistance + insideDistance;
     }
-
 }

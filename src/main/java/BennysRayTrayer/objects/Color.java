@@ -19,6 +19,10 @@ public class Color {
         this.b = b;
     }
 
+    public Color getColor() {
+        return this;
+    }
+
     public Vec3 toVec3() {
         return new Vec3(r, g, b);
     }
@@ -66,7 +70,14 @@ public class Color {
         return colorA.mul((float)weight).add(colorB.mul((float)(1.0 - weight)));
     }
 
-    public Vec3 blendColors(Color colorA, Color colorB, double weight) {
-        return blendColors(colorA.toVec3(), colorB.toVec3(), weight);
+    public static Color blendColors(Color colorA, Color colorB, double weight) {
+        if (colorA == null && colorB == null) return null;
+        if (colorA == null) return colorB;
+        if (colorB == null) return colorA;
+        return new Color(
+                (float)(colorA.r * weight + colorB.r * (1.0 - weight)),
+                (float)(colorA.g * weight + colorB.g * (1.0 - weight)),
+                (float)(colorA.b * weight + colorB.b * (1.0 - weight))
+        );
     }
 }

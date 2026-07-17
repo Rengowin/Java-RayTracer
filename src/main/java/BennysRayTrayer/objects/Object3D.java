@@ -28,7 +28,6 @@ public abstract class Object3D {
         this.transform = new Transform();
     }
 
-
     public Object3D(Color color) {
         this.color = color;
         this.transform = new Transform();
@@ -131,5 +130,9 @@ public abstract class Object3D {
 
     protected Vec3 toLocalDirection(Vec3 d) {
         return transform.worldToLocalDirection(d);
+    }
+
+    public Material getMaterialAt(Vec3 worldPoint) {
+        return getMaterial(); // Default: einfach das globale Material
     }
 }

@@ -9,10 +9,6 @@ import BennysRayTrayer.scene.Scene;
 
 public class RayTracer {
 
-    //TODO: SHADOWRAY FIXEN (bei denn csg)
-    //scahuen ob nur geht wenn der startpunkt aushalb liegt
-    //bei einer spehere einen cylinder
-
     static int depth = 3;
 
     static boolean useFog = false;
@@ -77,7 +73,7 @@ public class RayTracer {
         }
 
         Vec3 pixelColor = new Vec3(0.08f, 0.08f, 0.08f);
-        Material mat = hit.object.getMaterial();
+        Material mat = hit.object.getMaterialAt(hitPoint);
 
         for (Light light : lights) {
             Vec3 L = light.getPosition().sub(hitPoint).normalize();
@@ -107,15 +103,24 @@ public class RayTracer {
         return pixelColor;
     }
 
-    private static boolean isInShadow(Vec3 hitPoint, Light light, Object3D[] objects) {
+    private static boolean isInShadow(
+            Vec3 hitPoint,
+            Light light,
+            Object3D[] objects
+    ) {
         Vec3 lightDir = light.getPosition().sub(hitPoint);
         double lightDist = lightDir.length();
-        Ray shadowRay = new Ray(hitPoint.add(lightDir.normalize().mul(0.0001f)), lightDir.normalize());
+
+        Ray shadowRay = new Ray(
+                hitPoint.add(lightDir.normalize().mul(0.0001f)),
+                lightDir.normalize()
+        );
 
         for (Object3D object : objects) {
             Hit hit = object.intersect(shadowRay);
+
             if (hit != null && hit.t > 0 && hit.t < lightDist) {
-                Material mat = hit.object.getMaterial();
+                Material mat = hit.object.getMaterialAt(hit.position);
 
                 if (mat != null && mat.transparency > 0.5) {
                     continue;
@@ -124,6 +129,7 @@ public class RayTracer {
                 return true;
             }
         }
+
         return false;
     }
 
@@ -146,7 +152,7 @@ public class RayTracer {
         );
 
         Vec3 result = localColor;
-        Material mat = hit.object.getMaterial();
+        Material mat = hit.object.getMaterialAt(hit.position);
 
         if (depth > 0 && mat != null) {
 

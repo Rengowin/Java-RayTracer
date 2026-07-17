@@ -1,4 +1,4 @@
-package BennysRayTrayer.objects.csg;
+package BennysRayTrayer.objects.Normal.csg;
 
 import BennysRayTrayer.CSGMaterialBlendMode;
 import BennysRayTrayer.core.HitInterval;

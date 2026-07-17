@@ -7,4 +7,5 @@ public enum CSGMaterialBlendMode {
     NEAREST,            // Je nachdem welche SDF näher (basierend auf d1, d2)
     HARD_NEAREST,       // Rasant wechsel zu näherem
     SMOOTH_BLEND,       // Smooth Interpolation basierend auf Blend-Faktor
+    PRESERVE_MATERIALS
 }

@@ -37,5 +37,4 @@ public class RayMarchCapsule extends RayMarchObject {
 
         return Math.min(Math.max(d.x, d.y), 0.0) + Math.sqrt(Math.max(d.x, 0.0) * Math.max(d.x, 0.0) + Math.max(d.y, 0.0) * Math.max(d.y, 0.0));
     }
-
 }

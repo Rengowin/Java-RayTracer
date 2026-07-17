@@ -1,4 +1,4 @@
-package BennysRayTrayer.objects.rayMarch.operations;
+package BennysRayTrayer.objects.rayMarch.operations.RayMarchCSG;
 
 import BennysRayTrayer.core.Vec3;
 import BennysRayTrayer.objects.rayMarch.RayMarchObject;
@@ -17,6 +17,13 @@ public class RayMarchIntersect extends RayMarchObject {
         super(material);
         this.a = a;
         this.b = b;
+    }
+
+    public RayMarchIntersect(
+            RayMarchObject a,
+            RayMarchObject b
+    ) {
+        this(a, b, null);
     }
 
     @Override

@@ -6,7 +6,7 @@ import BennysRayTrayer.objects.rayMarch.RayMarchObject;
 public class RayMarchHalfSpace extends RayMarchObject {
 
     private final Vec3 normal;
-    private final double distance;
+    private double distance;
 
     public RayMarchHalfSpace(Vec3 normal, double distance) {
         this.normal = normal.normalize();
@@ -17,4 +17,5 @@ public class RayMarchHalfSpace extends RayMarchObject {
     public double getSDF(Vec3 p) {
         return normal.dot(p) - distance;
     }
+
 }

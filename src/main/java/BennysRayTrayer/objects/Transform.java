@@ -27,6 +27,15 @@ public class Transform {
         rebuildMatrices();
     }
 
+    public void multiplyScale(Vec3 factor) {
+        this.scale = new Vec3(
+                this.scale.x * factor.x,
+                this.scale.y * factor.y,
+                this.scale.z * factor.z
+        );
+        rebuildMatrices();
+    }
+
     public Vec3 getPosition() {
         return position;
     }

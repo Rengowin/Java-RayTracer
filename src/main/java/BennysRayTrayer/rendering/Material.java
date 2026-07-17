@@ -36,4 +36,6 @@ public class Material {
                 matA.refractiveIndex * weight + matB.refractiveIndex * w
         );
     }
+
+
 }

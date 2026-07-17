@@ -66,6 +66,4 @@ public class RayMarchSphere extends RayMarchObject {
 
         return baseSdf;
     }
-
-
 }
