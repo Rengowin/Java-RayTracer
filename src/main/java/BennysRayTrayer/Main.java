@@ -215,8 +215,9 @@ public class Main {
         p0.setPosition(new Vec3(petaldistance, 0, 0));
 
         Object3D p45 = createSmallPetal();
-        p45.setPosition(new Vec3(petaldistance * (float) Math.cos(Math.toRadians(45)), 0, petaldistance * (float) Math.sin(Math.toRadians(45))));
-        p45.setRotation(new Vec3(0, 45, 0));
+        p45.setRotation(new Vec3(0, -45, 0));
+        p45.setPosition(new Vec3(1.4f, 0, 1.4f));
+
 
         Object3D p90 = createCanonicalPetal();
         p90.setRotation(new Vec3(0, 90, 0));
@@ -270,14 +271,12 @@ public class Main {
 
         ground.setPosition(new Vec3(0, -1.3f, 0));
 
-        p45.setScale(new Vec3(0.5f, 0.5f, 0.5f));
-
         // Objects-Array mit Raymarching erweitern
         Object3D[] objects = new Object3D[] {
                 //floor, emblem, outerRing, middleBall,
                 //p0, p90, p180, p270,
-                p45, p135, //p225, p315,
-                //ground
+                p45, //p135, //p225, p315,
+                ground
         };
 
         Light[] lights = new Light[] {
@@ -528,6 +527,8 @@ public class Main {
                 0.1f,
                 PRESERVE_MATERIALS
         );
+
+        smallPetal.setScale(new Vec3(0.25f,0.25f,0.25f));
 
         return smallPetal;
     }

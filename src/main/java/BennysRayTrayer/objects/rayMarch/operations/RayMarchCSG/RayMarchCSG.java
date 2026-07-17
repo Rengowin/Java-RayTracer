@@ -75,7 +75,9 @@ public abstract class RayMarchCSG extends RayMarchObject {
     }
 
     @Override
-    public Material getMaterialAt(Vec3 point) {
+    public Material getMaterialAt(Vec3 worldPoint) {
+        Vec3 point = toLocalPoint(worldPoint);
+
         return switch (blendMode) {
             case USE_A -> a.getMaterialAt(point);
 
@@ -122,5 +124,13 @@ public abstract class RayMarchCSG extends RayMarchObject {
         double d2 = distanceB(point);
 
         return Math.abs(d1) <= Math.abs(d2) ? 0.0 : 1.0;
+    }
+
+    protected RayMarchObject getSurfaceObject(Vec3 point) {
+        double d1 = distanceA(point);
+        double d2 = distanceB(point);
+
+        // Standard für Union:
+        return d1 <= d2 ? a : b;
     }
 }

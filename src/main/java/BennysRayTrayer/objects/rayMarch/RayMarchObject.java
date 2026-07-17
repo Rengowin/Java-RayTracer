@@ -36,35 +36,58 @@ public abstract class RayMarchObject extends Object3D {
         super();
     }
 
-    public abstract double getSDF(Vec3 point);
+    /**
+     * Die eigentliche Form im lokalen Koordinatensystem.
+     */
+    protected abstract double getLocalSDF(Vec3 localPoint);
 
-    public double getTransformedSDF(Vec3 worldPoint) {
-        Vec3 localPoint = toLocalPoint(worldPoint);
-        double localDistance = getSDF(localPoint);
+    /**
+     * Wertet dieses Objekt in seinem Parent-Koordinatensystem aus.
+     *
+     * Bei einem Root-Objekt ist der Parent-Space die Welt.
+     * Bei einem Child in einer CSG-Operation ist der Parent-Space
+     * der lokale Raum der CSG-Operation.
+     */
+    public final double getSDF(Vec3 pointInParentSpace) {
+        Vec3 localPoint = toLocalPoint(pointInParentSpace);
 
+        double localDistance = getLocalSDF(localPoint);
+
+        /*
+         * Exakte SDF-Skalierung ist bei nicht-uniformer Skalierung
+         * nicht allgemein möglich. minScale ist eine konservative
+         * Näherung und verhindert meist Overshooting.
+         */
         Vec3 scale = transform.getScale();
 
-        double distanceScale = Math.min(
+        double minScale = Math.min(
                 Math.abs(scale.x),
-                Math.min(
-                        Math.abs(scale.y),
-                        Math.abs(scale.z)
-                )
+                Math.min(Math.abs(scale.y), Math.abs(scale.z))
         );
 
-        return localDistance * distanceScale;
+        if (minScale < 1e-6) {
+            return Double.MAX_VALUE;
+        }
+
+        return localDistance * minScale;
     }
 
     private Hit raymarchRay(Ray ray) {
         Vec3 currentPos = ray.origin;
         double totalDistance = 0.0;
-        int steps = 0;
 
-        while (steps < MAX_STEPS && totalDistance < MAX_DISTANCE) {
-            double sdfValue = getTransformedSDF(currentPos);
+        for (int step = 0;
+             step < MAX_STEPS && totalDistance < MAX_DISTANCE;
+             step++) {
 
-            if (sdfValue < EPSILON) {
-                Vec3 normal = calculateWorldNormal(currentPos);
+            /*
+             * Kein vorheriges toLocalPoint() mehr.
+             * getSDF übernimmt den Transform des Root-Objekts.
+             */
+            double sdfValue = getSDF(currentPos);
+
+            if (Math.abs(sdfValue) < EPSILON) {
+                Vec3 normal = calculateNormal(currentPos);
 
                 return new Hit(
                         totalDistance,
@@ -74,33 +97,37 @@ public abstract class RayMarchObject extends Object3D {
                 );
             }
 
-            double stepSize = Math.max(sdfValue, MIN_DISTANCE);
+            double stepSize = Math.max(
+                    Math.abs(sdfValue),
+                    MIN_DISTANCE
+            );
 
             currentPos = currentPos.add(
                     ray.direction.mul((float) stepSize)
             );
 
             totalDistance += stepSize;
-            steps++;
         }
 
         return null;
     }
 
-    private Vec3 calculateWorldNormal(Vec3 worldPoint) {
+    /**
+     * Die SDF wird im Parent-/World-Space abgetastet.
+     * Deshalb ist die Normale anschließend ebenfalls bereits
+     * im richtigen Koordinatensystem.
+     */
+    private Vec3 calculateNormal(Vec3 p) {
         float delta = (float) SDF_DELTA;
 
-        double fx =
-                getTransformedSDF(worldPoint.add(new Vec3(delta, 0, 0)))
-                        - getTransformedSDF(worldPoint.add(new Vec3(-delta, 0, 0)));
+        double fx = getSDF(p.add(new Vec3(delta, 0, 0)))
+                - getSDF(p.add(new Vec3(-delta, 0, 0)));
 
-        double fy =
-                getTransformedSDF(worldPoint.add(new Vec3(0, delta, 0)))
-                        - getTransformedSDF(worldPoint.add(new Vec3(0, -delta, 0)));
+        double fy = getSDF(p.add(new Vec3(0, delta, 0)))
+                - getSDF(p.add(new Vec3(0, -delta, 0)));
 
-        double fz =
-                getTransformedSDF(worldPoint.add(new Vec3(0, 0, delta)))
-                        - getTransformedSDF(worldPoint.add(new Vec3(0, 0, -delta)));
+        double fz = getSDF(p.add(new Vec3(0, 0, delta)))
+                - getSDF(p.add(new Vec3(0, 0, -delta)));
 
         return new Vec3(
                 (float) fx,
@@ -112,7 +139,6 @@ public abstract class RayMarchObject extends Object3D {
     @Override
     public List<HitInterval> intersectIntervals(Ray ray) {
         Hit hit = raymarchRay(ray);
-
         List<HitInterval> intervals = new ArrayList<>();
 
         if (hit != null && hit.t > 0) {
@@ -128,3 +154,4 @@ public abstract class RayMarchObject extends Object3D {
         return intervals;
     }
 }
+

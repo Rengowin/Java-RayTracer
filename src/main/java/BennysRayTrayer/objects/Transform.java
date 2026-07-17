@@ -73,18 +73,20 @@ public class Transform {
     }
 
     private void rebuildMatrices() {
+        // localToWorld: Erst skalieren, dann rotieren, dann verschieben
+        // Das ist die STANDARDKONVENTION in 3D-Grafik
         localToWorld = new Matrix4()
-                .translate(position.x, position.y, position.z)
-                .rotateX((float)Math.toRadians(rotation.x))
-                .rotateY((float)Math.toRadians(rotation.y))
-                .rotateZ((float)Math.toRadians(rotation.z))
-                .scale(scale.x, scale.y, scale.z);
+                .scale(scale.x, scale.y, scale.z)              // ZUERST skalieren (local space)
+                .rotateX((float) Math.toRadians(rotation.x))   // DANN rotieren
+                .rotateY((float) Math.toRadians(rotation.y))
+                .rotateZ((float) Math.toRadians(rotation.z))
+                .translate(position.x, position.y, position.z);  // ZULETZT verschieben (world space)
 
         worldToLocal = new Matrix4()
-                .scale(1f / scale.x, 1f / scale.y, 1f / scale.z)
-                .rotateZ((float)Math.toRadians(-rotation.z))
-                .rotateY((float)Math.toRadians(-rotation.y))
-                .rotateX((float)Math.toRadians(-rotation.x))
-                .translate(-position.x, -position.y, -position.z);
+                .translate(-position.x, -position.y, -position.z)
+                .rotateZ((float) Math.toRadians(-rotation.z))
+                .rotateY((float) Math.toRadians(-rotation.y))
+                .rotateX((float) Math.toRadians(-rotation.x))
+                .scale(1f / scale.x, 1f / scale.y, 1f / scale.z);
     }
 }

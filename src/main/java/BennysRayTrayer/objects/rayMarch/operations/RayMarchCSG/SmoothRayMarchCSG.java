@@ -30,7 +30,7 @@ public abstract class SmoothRayMarchCSG extends RayMarchCSG{
         double d1 = distanceA(point);
         double d2 = distanceB(point);
 
-        double factor = 0.5 + (d1 - d2) / (2.0 * k);
+        double factor = 0.5 + (d2 - d1) / (2.0 * k);
 
         return Math.max(0.0, Math.min(1.0, factor));
     }

@@ -26,9 +26,9 @@ public class SmoothIntersect extends SmoothRayMarchCSG {
     }
 
     @Override
-    public double getSDF(Vec3 point) {
-        double d1 = distanceA(point);
-        double d2 = distanceB(point);
+    public double getLocalSDF(Vec3 point) {
+        double d1 = getSDF(point);
+        double d2 = getSDF(point);
 
         double h = smoothFactor(d1, d2);
 

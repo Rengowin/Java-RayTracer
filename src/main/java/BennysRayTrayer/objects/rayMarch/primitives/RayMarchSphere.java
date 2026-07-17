@@ -57,7 +57,7 @@ public class RayMarchSphere extends RayMarchObject {
     }
 
     @Override
-    public double getSDF(Vec3 point) {
+    public double getLocalSDF(Vec3 point) {
         double baseSdf = point.length() - radius;
 
         if (displacement != null) {

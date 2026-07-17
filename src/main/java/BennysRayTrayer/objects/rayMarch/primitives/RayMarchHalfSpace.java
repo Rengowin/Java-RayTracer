@@ -14,7 +14,7 @@ public class RayMarchHalfSpace extends RayMarchObject {
     }
 
     @Override
-    public double getSDF(Vec3 p) {
+    public double getLocalSDF(Vec3 p) {
         return normal.dot(p) - distance;
     }
 

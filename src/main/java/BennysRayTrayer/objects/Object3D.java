@@ -135,4 +135,19 @@ public abstract class Object3D {
     public Material getMaterialAt(Vec3 worldPoint) {
         return getMaterial(); // Default: einfach das globale Material
     }
+
+    public Object3D setLocalPosition(Vec3 position) {
+        transform.setPosition(position);
+        return this;
+    }
+
+    public Object3D setLocalRotation(Vec3 rotation) {
+        transform.setRotation(rotation);
+        return this;
+    }
+
+    public Object3D setLocalScale(Vec3 scale) {
+        transform.setScale(scale);
+        return this;
+    }
 }

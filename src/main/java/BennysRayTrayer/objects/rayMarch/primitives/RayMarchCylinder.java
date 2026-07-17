@@ -28,7 +28,7 @@ public class RayMarchCylinder extends RayMarchObject {
     }
 
     @Override
-    public double getSDF(Vec3 p) {
+    public double getLocalSDF(Vec3 p) {
         Vec3 d = new Vec3(
                 (float) (Math.sqrt(p.x * p.x + p.z * p.z) - radius),
                 (float) (Math.abs(p.y) - height / 2),
