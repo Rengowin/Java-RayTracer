@@ -24,11 +24,11 @@ public abstract class RayMarchCSG extends RayMarchObject {
     }
 
     protected double distanceA(Vec3 point) {
-        return a.getTransformedSDF(point);
+        return a.getSDF(point);
     }
 
     protected double distanceB(Vec3 point) {
-        return b.getTransformedSDF(point);
+        return b.getSDF(point);
     }
 
     protected void applyDefaultMaterialAndColor() {

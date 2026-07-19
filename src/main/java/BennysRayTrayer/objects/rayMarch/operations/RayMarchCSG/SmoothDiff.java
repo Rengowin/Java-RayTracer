@@ -22,14 +22,16 @@ public class SmoothDiff extends SmoothRayMarchCSG {
     }
 
     @Override
-    public double getSDF(Vec3 point) {
-        Vec3 pointInA = a.getTransform().worldToLocalPoint(point);
-        Vec3 pointInB = b.getTransform().worldToLocalPoint(point);
+    public double getLocalSDF(Vec3 point) {
+        double d1 = distanceA(point);
+        double d2 = distanceB(point);
 
-        double d1 = a.getSDF(pointInA);
-        double d2 = b.getSDF(pointInB);
-        double h = Math.max(k - Math.abs(d1 + d2), 0.0) / k;
-        return Math.max(d1, -d2) + h * h * k * 0.25;
+        double h = Math.max(
+                k - Math.abs(d1 + d2),
+                0.0
+        ) / k;
+
+        return Math.max(d1, -d2)
+                + h * h * k * 0.25;
     }
-
 }

@@ -8,12 +8,8 @@ import BennysRayTrayer.objects.Normal.Quadric;
 import BennysRayTrayer.objects.Normal.csg.Cut;
 import BennysRayTrayer.objects.Normal.csg.Diff;
 import BennysRayTrayer.objects.rayMarch.RayMarchObject;
-import BennysRayTrayer.objects.rayMarch.operations.RayMarchCSG.RayMarchIntersect;
-import BennysRayTrayer.objects.rayMarch.operations.RayMarchCSG.SmoothCut;
-import BennysRayTrayer.objects.rayMarch.operations.RayMarchCSG.SmoothUnion;
-import BennysRayTrayer.objects.rayMarch.primitives.RayMarchBox;
-import BennysRayTrayer.objects.rayMarch.primitives.RayMarchCylinder;
-import BennysRayTrayer.objects.rayMarch.primitives.RayMarchHalfSpace;
+import BennysRayTrayer.objects.rayMarch.operations.RayMarchCSG.*;
+import BennysRayTrayer.objects.rayMarch.primitives.*;
 import BennysRayTrayer.rendering.*;
 import BennysRayTrayer.scene.*;
 
@@ -61,7 +57,7 @@ public class Main {
 
         //Camera toptown View
         Camera cam1 = new Camera(
-                new Vec3(0, 3, 0),
+                new Vec3(0, 10, 0),
                 60,
                 new Vec3(0, -1, 0)
         );
@@ -84,15 +80,6 @@ public class Main {
                 0.1,    // wenig Reflexion
                 0.85,   // sehr transparent
                 1.45
-        );
-
-        Material silver = new Material(
-                Color.ofRGB(190, 195, 205).toVec3(),
-                0.2,    // sehr glatt
-                0.8,    // sehr metallisch
-                0.35,   // starke Reflexion
-                0.0,
-                1.0
         );
 
         Material softSilver = new Material(
@@ -161,27 +148,15 @@ public class Main {
         behindGlass.setScale(new Vec3(0.7f, 0.7f, 0.7f));
         behindGlass.setPosition(new Vec3(3.2f, -0.4f, 0.3f));
 
-        Object3D floorDemo = HalfSpace.yGreater(-1.2f, Color.gray());
-
         //photon cannon die irgendwie nicht will ich
         Object3D floorBase = Quadric.cylinderY(Color.gray());
 
         floorBase.setScale(new Vec3(2f, 1f, 2f));
         floorBase.setMaterial(gold);
 
-        Object3D floor = new Cut(
-                new Cut(floorBase, HalfSpace.yLess(-1.1f, Color.gray())),
-                HalfSpace.yGreater(-1.3f, Color.gray())
-        );
-
         Object3D emblemBeforCut = Quadric.cylinderY(Color.cyan());
         emblemBeforCut.setScale(new Vec3(0.750f, 1, 0.750f));
         emblemBeforCut.setMaterial(blueGlass);
-
-        Object3D emblem = new Cut(
-                new Cut(emblemBeforCut, HalfSpace.yLess(-1.0f, Color.blue())),
-                HalfSpace.yGreater(-1.2f, Color.blue())
-        );
 
         Object3D outer = Quadric.cylinderY(Color.yellow());
         outer.setScale(new Vec3(2f, 1f, 2f));
@@ -191,13 +166,6 @@ public class Main {
         inner.setScale(new Vec3(1.0f, 1f, 1.0f));
         inner.setMaterial(gold);
 
-        Object3D outerRingBeforCut = new Diff(outer, inner);
-
-        Object3D outerRingBeforDiffWithSpehere = new Cut(
-                new Cut(outerRingBeforCut, HalfSpace.yLess(-0.75f, Color.gray())),
-                HalfSpace.yGreater(-1.2f, Color.gray())
-        );
-
         Object3D middleBall = Quadric.sphere(Color.gray());
         middleBall.setScale(new Vec3(0.75f, 0.75f, 0.75f));
         middleBall.setPosition(new Vec3(0f, 0.75f, 0f));
@@ -206,56 +174,47 @@ public class Main {
         Object3D sphereForCut = Quadric.sphere(Color.gray());
         sphereForCut.setScale(new Vec3(1.8f, 2.5f, 1.8f));
 
-        Object3D outerRing = new Diff(outerRingBeforDiffWithSpehere,sphereForCut);
-
-        float petaldistance = 2.0f;
-
+        float petalDistance = 2.0f;
+        float smallPetalDistance = 2.1f;
+        float smallPetalY = -0.75f;
 
         Object3D p0 = createCanonicalPetal();
-        p0.setPosition(new Vec3(petaldistance, 0, 0));
+        //p0.setRotation(new Vec3(0, 0, 0));
+        //p0.setPosition(positionOnRing(0, petalDistance, 0));
 
         Object3D p45 = createSmallPetal();
         p45.setRotation(new Vec3(0, -45, 0));
-        p45.setPosition(new Vec3(1.4f, 0, 1.4f));
-
+        p45.setPosition(positionOnRing(45, smallPetalDistance, smallPetalY));
 
         Object3D p90 = createCanonicalPetal();
         p90.setRotation(new Vec3(0, 90, 0));
-        p90.setPosition(new Vec3(petaldistance, 0, 0));
+        p90.setPosition(positionOnRing(90, petalDistance, 0));
 
         Object3D p135 = createSmallPetal();
-        p135.setPosition(new Vec3(
-                (float)(petaldistance * Math.cos(Math.toRadians(135))),
-                0,
-                (float)(petaldistance * Math.sin(Math.toRadians(135)))
-        ));
-        p135.setRotation(new Vec3(0, 135, 0));
+        p135.setRotation(new Vec3(0, 45, 0));
+        p135.setPosition(positionOnRing(135, smallPetalDistance, smallPetalY));
 
         Object3D p180 = createCanonicalPetal();
         p180.setRotation(new Vec3(0, 180, 0));
-        p180.setPosition(new Vec3(petaldistance, 0, 0));
+        p180.setPosition(positionOnRing(180, petalDistance, 0));
 
         Object3D p225 = createSmallPetal();
-        p225.setPosition(new Vec3(
-                (float)(petaldistance * Math.cos(Math.toRadians(255))),
-                0,
-                (float)(petaldistance * Math.sin(Math.toRadians(255)))
-        ));
-        p225.setRotation(new Vec3(0, 225, 0));
+        p225.setRotation(new Vec3(0, -225, 0));
+        p225.setPosition(positionOnRing(225, smallPetalDistance, smallPetalY));
 
         Object3D p270 = createCanonicalPetal();
         p270.setRotation(new Vec3(0, 270, 0));
-        p270.setPosition(new Vec3(petaldistance, 0, 0));
+        p270.setPosition(positionOnRing(270, petalDistance, 0));
 
         Object3D p315 = createSmallPetal();
-        p315.setPosition(new Vec3(
-                (float)(petaldistance * Math.cos(Math.toRadians(315))),
-                0,
-                (float)(petaldistance * Math.sin(Math.toRadians(315)))
-        ));
-        p315.setRotation(new Vec3(0, 315, 0));
+        p315.setRotation(new Vec3(0, 225, 0));
+        p315.setPosition(positionOnRing(315, smallPetalDistance, smallPetalY));
 
-        // ============ RAYMARCHING OBJEKTE ============
+        Object3D innerStuff = createMidPart();
+        innerStuff.setPosition(new Vec3(0, -0.6f, 0));
+
+        Object3D cannonShootingThink = createFlyingShere();
+        cannonShootingThink.setPosition(new Vec3(0, 1.25f, 0));
 
         RayMarchObject ground = new RayMarchBox(
                 new Vec3(20f, 0.1f, 20f),
@@ -273,10 +232,12 @@ public class Main {
 
         // Objects-Array mit Raymarching erweitern
         Object3D[] objects = new Object3D[] {
-                //floor, emblem, outerRing, middleBall,
-                //p0, p90, p180, p270,
-                p45, //p135, //p225, p315,
-                ground
+                //cannonShootingThink,
+                p0, //p90, p180, p270,
+                //p45, p135, p225, p315,
+                //innerStuff,
+                //ground,
+                //testRota
         };
 
         Light[] lights = new Light[] {
@@ -302,47 +263,100 @@ public class Main {
 
     private static Object3D createCanonicalPetal() {
         Material gold = new Material(
-                Color.ofRGB(245, 205, 85).toVec3(),
-                0.35,
-                0.0,
-                0.0,
+                Color.ofRGB(212, 171, 62).toVec3(),
+                0.28,
+                0.95,
+                0.18,
                 0.0,
                 1.0
         );
 
-        Object3D base = Quadric.paraboloidY(Color.gray());
-        base.setMaterial(gold);
-
-        Object3D petal = new Cut(
-                new Cut(
-                        base,
-                        HalfSpace.yLess(0.0f, Color.gray())
-                ),
-                HalfSpace.yGreater(-1.2f, Color.gray())
+        RayMarchObject petal = new RayMarchEllipsoid(
+                new Vec3(0.7f, 1.11f, 0.7f),
+                gold
         );
 
-        petal = clampZ(petal, 0.5f, Color.gray());
+        float sideSlope = 0.85f;
+        float sideDistance = 0.8f;
+        float smoothness = 0.12f;
 
-        Object3D hole = Quadric.cylinderZ(Color.gray());
-        hole.setMaterial(gold);
-        hole.setScale(new Vec3(0.75f, 0.75f, 1.5f));
-        hole.setPosition(new Vec3(-0.55f, -0.35f, 0.0f));
+        petal = new SmoothIntersect(
+                petal,
+                new RayMarchHalfSpace(
+                        new Vec3(-1.0f, sideSlope, 0.0f).normalize(),
+                        sideDistance
+                ),
+                smoothness
+        );
 
-        return new Diff(petal, hole);
+        petal = new SmoothIntersect(
+                petal,
+                new RayMarchHalfSpace(
+                        new Vec3(1.0f, sideSlope, 0.0f).normalize(),
+                        sideDistance
+                ),
+                smoothness
+        );
+
+        RayMarchObject cutHalfSpace = new RayMarchHalfSpace(
+                new Vec3(0, 1, 0),
+                -0.5f
+        );
+
+        petal = new SmoothCut(
+                petal,
+                cutHalfSpace,
+                0.1f
+        );
+
+        RayMarchObject leftBlueStrip = createBlueShape();
+        RayMarchObject rightBlueStrip = createBlueShape();
+
+        leftBlueStrip.setScale(new Vec3(
+                0.35f,
+                0.55f,
+                0.35f
+        ));
+
+        leftBlueStrip.setRotation(new Vec3(
+                -65f, //-40 sieht gut aus
+                25,
+                25
+        ));
+
+        leftBlueStrip.setPosition(new Vec3(
+                -0.48f,
+                0.15f,
+                0.42f
+        ));
+
+        petal = new RayMarchCut(
+                petal,
+                leftBlueStrip,
+                USE_A
+        );
+
+        petal = new RayMarchUnion(
+                petal,
+                leftBlueStrip,
+                PRESERVE_MATERIALS
+        );
+
+        return petal;
     }
 
     private static Object3D createSmallPetal() {
         Material gold = new Material(
                 Color.ofRGB(212, 171, 62).toVec3(),
-                0.28,   // roughness
-                0.95,   // metallic
-                0.18,   // reflection
+                0.28,
+                0.95,
+                0.18,
                 0.0,
                 1.0
         );
 
         Material silver = new Material(
-                Color.ofRGB(175,180,190).toVec3(),
+                Color.ofRGB(175, 180, 190).toVec3(),
                 0.28,
                 0.90,
                 0.10,
@@ -362,16 +376,16 @@ public class Main {
         float sideSlope = 1.0f;
         float sideDistance = 0.2f;
 
-        float frontSlope = 1.00f;
+        float frontSlope = 1.0f;
         float frontDistance = 0.2f;
 
-        RayMarchObject smallPetalTop = new RayMarchBox(
+        RayMarchObject top = new RayMarchBox(
                 new Vec3(1f, 1f, 1f),
                 gold
         );
 
-        smallPetalTop = new RayMarchIntersect(
-                smallPetalTop,
+        top = new RayMarchIntersect(
+                top,
                 new RayMarchHalfSpace(
                         new Vec3(-1.0f, sideSlope, 0.0f),
                         sideDistance
@@ -379,8 +393,8 @@ public class Main {
                 gold
         );
 
-        smallPetalTop = new RayMarchIntersect(
-                smallPetalTop,
+        top = new RayMarchIntersect(
+                top,
                 new RayMarchHalfSpace(
                         new Vec3(1.0f, sideSlope, 0.0f),
                         sideDistance
@@ -388,9 +402,8 @@ public class Main {
                 gold
         );
 
-        //frontSlope
-        smallPetalTop = new RayMarchIntersect(
-                smallPetalTop,
+        top = new RayMarchIntersect(
+                top,
                 new RayMarchHalfSpace(
                         new Vec3(-1.0f, frontSlope, -1.0f).normalize(),
                         frontDistance
@@ -398,8 +411,8 @@ public class Main {
                 gold
         );
 
-        smallPetalTop = new RayMarchIntersect(
-                smallPetalTop,
+        top = new RayMarchIntersect(
+                top,
                 new RayMarchHalfSpace(
                         new Vec3(1.0f, frontSlope, -1.0f).normalize(),
                         frontDistance
@@ -407,70 +420,96 @@ public class Main {
                 gold
         );
 
+        top.setRotation(new Vec3(0, 180, 0));
+
+        top.setPosition(new Vec3(
+                0.0f,
+                2.0f,
+                0.60f
+        ));
+
         RayMarchObject baseWall = new RayMarchBox(
                 new Vec3(1f, 1f, 1f),
                 gold
         );
-        baseWall.setScale(new Vec3(1f,1f,0.5f));
 
-        RayMarchObject trianglefoot = new RayMarchBox(
+        baseWall.setScale(new Vec3(
+                1.0f,
+                1.0f,
+                0.5f
+        ));
+
+        baseWall.setPosition(new Vec3(
+                0.0f,
+                0.0f,
+                0.0f
+        ));
+
+        RayMarchObject triangleFoot = new RayMarchBox(
                 new Vec3(1f, 1f, 1f),
                 gold
         );
 
-        trianglefoot.setScale(new Vec3(1f,0.5f,1f));
+        triangleFoot.setScale(new Vec3(
+                1.0f,
+                0.5f,
+                1.0f
+        ));
 
-        trianglefoot = new RayMarchIntersect(
-                trianglefoot,
+        triangleFoot = new RayMarchIntersect(
+                triangleFoot,
                 new RayMarchHalfSpace(
-                        new Vec3(0.0f, 2f, -1.0f),
+                        new Vec3(0.0f, 2.0f, -1.0f).normalize(),
                         0.0f
                 ),
                 gold
         );
 
         RayMarchObject cutBox = new RayMarchBox(
-                new Vec3(0.70f,1,1)
+                new Vec3(0.70f, 1.0f, 1.0f)
         );
-        cutBox.setPosition(new Vec3(0f,0,-0.25f));
 
-        trianglefoot = new SmoothCut(
-                trianglefoot,
+        cutBox.setPosition(new Vec3(
+                0.0f,
+                0.0f,
+                -0.25f
+        ));
+
+        triangleFoot = new SmoothCut(
+                triangleFoot,
                 cutBox,
                 0.1f
         );
 
-        baseWall.setPosition(new Vec3(0.0f, 0.0f, 0f));
-        trianglefoot.setPosition(new Vec3(0.0f, -0.5f, -0.75f));
-        trianglefoot.setRotation(new Vec3(0, 180, 0));
+        triangleFoot.setRotation(new Vec3(0, 180, 0));
+        triangleFoot.setPosition(new Vec3(
+                0.0f,
+                -0.5f,
+                1.25f
+        ));
 
-        smallPetalTop.setPosition(new Vec3(0.0f, 2.0f, -0.60f));
-
-        smallPetalTop.setRotation(new Vec3(0, 180, 0));
-
-        RayMarchObject smallPetal = new SmoothUnion(
-                        trianglefoot,
-                        baseWall,
-                        0.1f
+        RayMarchObject petal = new SmoothUnion(
+                triangleFoot,
+                baseWall,
+                0.1f
         );
 
-        smallPetal = new SmoothUnion(
-                smallPetal,
-                smallPetalTop,
+        petal = new SmoothUnion(
+                petal,
+                top,
                 0.1f
         );
 
         RayMarchObject cylinder = new RayMarchCylinder(
-                1f,
+                1.0f,
                 1.5f,
                 blueDark
         );
 
-        //denn cylinder wie fronttop slopen
         cylinder = new RayMarchIntersect(
                 cylinder,
                 new RayMarchHalfSpace(
-                        new Vec3(-1.0f, 0, -1.0f).normalize(),
+                        new Vec3(-1.0f, 0.0f, -1.0f).normalize(),
                         frontDistance
                 ),
                 blueDark
@@ -479,11 +518,23 @@ public class Main {
         cylinder = new RayMarchIntersect(
                 cylinder,
                 new RayMarchHalfSpace(
-                        new Vec3(1.0f, 0, -1.0f).normalize(),
+                        new Vec3(1.0f, 0.0f, -1.0f).normalize(),
                         frontDistance
                 ),
                 blueDark
         );
+
+        cylinder.setScale(new Vec3(
+                0.8f,
+                1.5f,
+                1.10f
+        ));
+
+        cylinder.setPosition(new Vec3(
+                0.0f,
+                0.0f,
+                0.30f
+        ));
 
         RayMarchObject silverBase = new RayMarchBox(
                 new Vec3(2.0f, 0.18f, 1.4f),
@@ -508,29 +559,348 @@ public class Main {
                 silver
         );
 
-        silverBase = clampXRayMarch(silverBase, 1.25f);
-        silverBase.setPosition(new Vec3(0.0f, -1.5f, 0.25f));
+        silverBase = clampXRayMarch(
+                silverBase,
+                1.25f
+        );
 
-        cylinder.setPosition(new Vec3(0.0f, 0.0f, 0.30f));
-        cylinder.setScale(new Vec3(0.8f,1.5f,1.10f));
+        silverBase.setPosition(new Vec3(
+                0.0f,
+                -1.20f,
+                1.45f
+        ));
 
-        smallPetal = new SmoothUnion(
-                smallPetal,
+        petal = new SmoothUnion(
+                petal,
                 cylinder,
                 0.1f,
                 PRESERVE_MATERIALS
         );
 
-        smallPetal = new SmoothUnion(
-                smallPetal,
+
+        petal = new SmoothUnion(
+                petal,
                 silverBase,
                 0.1f,
                 PRESERVE_MATERIALS
         );
 
-        smallPetal.setScale(new Vec3(0.25f,0.25f,0.25f));
+        petal.setScale(new Vec3(
+                0.25f,
+                0.25f,
+                0.25f
+        ));
 
-        return smallPetal;
+        return petal;
+    }
+
+    private static Object3D createMidPart(){
+        Material gold = new Material(
+                Color.ofRGB(212, 171, 62).toVec3(),
+                0.28,
+                0.95,
+                0.18,
+                0.0,
+                1.0
+        );
+
+        Material silver = new Material(
+                Color.ofRGB(175, 180, 190).toVec3(),
+                0.28,
+                0.90,
+                0.10,
+                0.0,
+                1.0
+        );
+
+        Material energyBlue = new Material(
+                Color.ofRGB(30, 175, 255).toVec3(),
+                0.08,
+                0.05,
+                0.06,
+                0.0,
+                1.0
+        );
+
+        RayMarchObject goldBase = new RayMarchCylinder(
+                2.0f,
+                0.55f,
+                gold
+        );
+
+        RayMarchObject bowlCut = new RayMarchSphere(
+                2.5f,
+                gold
+        );
+
+        bowlCut.setPosition(new Vec3(
+                0.0f,
+                1.75f,
+                0.0f
+        ));
+
+        goldBase = new SmoothCut(
+                goldBase,
+                bowlCut,
+                0.08f,
+                PRESERVE_MATERIALS
+        );
+
+        RayMarchObject underBaseSilver = new RayMarchCylinder(
+                2.1f,
+                0.01f,
+                silver
+        );
+        underBaseSilver.setPosition(new Vec3(0, -0.5f, 0));
+        RayMarchObject base = new SmoothUnion(
+                goldBase,
+                underBaseSilver,
+                0.1f,
+                PRESERVE_MATERIALS
+        );
+
+        RayMarchObject blueStuffMidle = new RayMarchCylinder(
+                0.85f,
+                0.1f,
+                energyBlue
+        );
+        blueStuffMidle.setPosition(new Vec3(0, -0.4f, 0));
+
+        base = new SmoothUnion(
+                base,
+                blueStuffMidle,
+                0.1f,
+                PRESERVE_MATERIALS
+        );
+
+        RayMarchObject goldRingForBuleStuff = new RayMarchCylinder(
+                0.95f,
+                0.2,
+                gold
+        );
+        RayMarchObject cutForTheRing = new RayMarchCylinder(
+                0.8f,
+                0.2f,
+                gold
+        );
+        goldRingForBuleStuff.setPosition(new Vec3(0, -0.4f, 0));
+        cutForTheRing.setPosition(new Vec3(0, -0.4f, 0));
+
+        goldRingForBuleStuff = new SmoothCut(
+                goldRingForBuleStuff,
+                cutForTheRing,
+                0.1f
+        );
+
+        base = new SmoothUnion(
+                base,
+                goldRingForBuleStuff,
+                0.1f,
+                PRESERVE_MATERIALS
+        );
+
+        return base;
+    }
+
+    private static Object3D createFlyingShere(){
+        Material gold = new Material(
+                Color.ofRGB(212, 171, 62).toVec3(),
+                0.28,
+                0.95,
+                0.18,
+                0.0,
+                1.0
+        );
+
+        Material darkMetal = new Material(
+                Color.ofRGB(42, 45, 48).toVec3(),
+                0.48,   // eher rau
+                0.65,   // metallisch
+                0.08,
+                0.0,
+                1.0
+        );
+
+        Material blue = new Material(
+                Color.ofRGB(20, 190, 255).toVec3(),
+                0.08,
+                0.2,
+                0.15,
+                0.0,
+                1.0
+        );
+
+        RayMarchObject base = new RayMarchSphere(
+                1.45f,
+                darkMetal
+        );
+
+        for (int i = 0; i < 4; i++) {
+
+            RayMarchObject plate = new RayMarchSpherePlate(
+                    1.51,
+                    0.055,
+                    new Vec3(0.75f, 0.36f, 0.9f),
+                    new Vec3(0, 1.30f, 0),
+                    gold
+            );
+
+            plate.setRotation(new Vec3(
+                    0,
+                    0,
+                    90f * i
+            ));
+
+            base = new SmoothUnion(
+                    base,
+                    plate,
+                    0.03f,
+                    PRESERVE_MATERIALS
+            );
+        }
+        RayMarchObject frontBase = new RayMarchCylinder(
+                0.78f,
+                0.16f,
+                darkMetal
+        );
+
+        frontBase.setRotation(new Vec3(90, 0, 0));
+        frontBase.setPosition(new Vec3(0, 0, 1.35f));
+        RayMarchObject outer = new RayMarchCylinder(
+                0.62f,
+                0.12f,
+                gold
+        );
+
+        RayMarchObject inner = new RayMarchCylinder(
+                0.43f,
+                0.16f,
+                darkMetal
+        );
+
+        RayMarchObject goldRing = new SmoothDiff(
+                outer,
+                inner,
+                0.02f,
+                PRESERVE_MATERIALS
+        );
+
+        goldRing.setRotation(new Vec3(90, 0, 0));
+        goldRing.setPosition(new Vec3(0, 0, 1.48f));
+
+        RayMarchObject blueCore = new RayMarchCylinder(
+                0.40f,
+                0.10f,
+                blue
+        );
+
+        blueCore.setRotation(new Vec3(90, 0, 0));
+        blueCore.setPosition(new Vec3(0, 0, 1.56f));
+
+        base = new SmoothUnion(base, frontBase, 0.04f, PRESERVE_MATERIALS);
+        base = new SmoothUnion(base, goldRing, 0.02f, PRESERVE_MATERIALS);
+        base = new SmoothUnion(base, blueCore, 0.02f, PRESERVE_MATERIALS);
+
+        base.setScale(new Vec3(
+                0.5f,
+                0.5f,
+                0.5f
+        ));
+        return base;
+    }
+
+    private static RayMarchObject createBlueShape(){
+        Material blueGlass = new Material(
+                Color.ofRGB(20, 190, 255).toVec3(),
+                0.08,
+                0.2,
+                0.15,
+                0.0,
+                1.0
+        );
+
+        RayMarchObject blue = new RayMarchBox(
+                new Vec3(0.32f, 0.85f, 0.12f),
+                blueGlass
+        );
+
+        RayMarchObject triangleTop = new RayMarchBox(
+                new Vec3(1f, 1f, 1f),
+                blueGlass
+        );
+
+        //slopes that meet at the top
+
+        float frontSlope = 1.0f;
+        float frontDistance = 0.2f;
+
+        RayMarchObject slopeCutTop1 = new RayMarchHalfSpace(
+                new Vec3(-1.0f, frontSlope, 0.0f),
+                frontDistance
+        );
+
+        RayMarchObject slopeCutTop2 = new RayMarchHalfSpace(
+                new Vec3(1.0f, frontSlope, 0.0f),
+                frontDistance
+        );
+
+        triangleTop = new RayMarchIntersect(
+                triangleTop,
+                slopeCutTop1,
+                blueGlass
+        );
+
+        triangleTop = new RayMarchIntersect(
+                triangleTop,
+                slopeCutTop2,
+                blueGlass
+        );
+
+        RayMarchObject triangleBottom = new RayMarchBox(
+                new Vec3(1f, 1f, 1f),
+                blueGlass
+        );
+
+        RayMarchObject slopeCutBottom1 = new RayMarchHalfSpace(
+                new Vec3(-1.0f, -frontSlope, 0.0f),
+                frontDistance
+        );
+
+        RayMarchObject slopeCutBottom2 = new RayMarchHalfSpace(
+                new Vec3(1.0f, -frontSlope, 0.0f),
+                frontDistance
+        );
+
+        triangleBottom = new RayMarchIntersect(
+                triangleBottom,
+                slopeCutBottom1,
+                blueGlass
+        );
+
+        triangleBottom = new RayMarchIntersect(
+                triangleBottom,
+                slopeCutBottom2,
+                blueGlass
+        );
+
+        triangleTop.setScale(new Vec3(0.32f, 0.20f, 0.12f));
+        triangleBottom.setScale(new Vec3(0.32f, 0.20f, 0.12f));
+
+        triangleTop.setPosition(new Vec3(0, 1.0f, 0));
+        triangleBottom.setPosition(new Vec3(0, -1.0f, 0));
+
+        RayMarchObject blueShape = new RayMarchUnion(
+                blue,
+                triangleTop
+        );
+
+        blueShape = new RayMarchUnion(
+                blueShape,
+                triangleBottom
+        );
+
+
+        return blueShape;
     }
 
     private static Object3D clampX(Object3D object, float halfWidth, Color color) {
@@ -577,5 +947,15 @@ public class Main {
 
     public static HalfSpace slopeBack(float slope, float distance, Color color) {
         return HalfSpace.withNormal(new Vec3(0, slope, -1), distance, color);
+    }
+
+    private static Vec3 positionOnRing(float angleDeg, float distance, float y) {
+        double angle = Math.toRadians(angleDeg);
+
+        return new Vec3(
+                (float) (Math.cos(angle) * distance),
+                y,
+                (float) (Math.sin(angle) * distance)
+        );
     }
 }

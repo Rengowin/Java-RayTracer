@@ -27,11 +27,15 @@ public class SmoothIntersect extends SmoothRayMarchCSG {
 
     @Override
     public double getLocalSDF(Vec3 point) {
-        double d1 = getSDF(point);
-        double d2 = getSDF(point);
+        double d1 = distanceA(point);
+        double d2 = distanceB(point);
 
-        double h = smoothFactor(d1, d2);
+        double h = Math.max(
+                k - Math.abs(d1 - d2),
+                0.0
+        ) / k;
 
-        return Math.max(d1, d2) + h * h * k * 0.25;
+        return Math.max(d1, d2)
+                + h * h * k * 0.25;
     }
 }

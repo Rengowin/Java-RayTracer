@@ -14,7 +14,7 @@ import java.util.List;
 public abstract class RayMarchObject extends Object3D {
 
     protected static final double MAX_DISTANCE = 100.0;
-    protected static final double MIN_DISTANCE = 0.001;
+    protected static final double MIN_DISTANCE = 1e-5;
     protected static final int MAX_STEPS = 256;
     protected static final double EPSILON = 1e-4;
 
@@ -53,16 +53,14 @@ public abstract class RayMarchObject extends Object3D {
 
         double localDistance = getLocalSDF(localPoint);
 
-        /*
-         * Exakte SDF-Skalierung ist bei nicht-uniformer Skalierung
-         * nicht allgemein möglich. minScale ist eine konservative
-         * Näherung und verhindert meist Overshooting.
-         */
         Vec3 scale = transform.getScale();
 
         double minScale = Math.min(
                 Math.abs(scale.x),
-                Math.min(Math.abs(scale.y), Math.abs(scale.z))
+                Math.min(
+                        Math.abs(scale.y),
+                        Math.abs(scale.z)
+                )
         );
 
         if (minScale < 1e-6) {
@@ -76,17 +74,14 @@ public abstract class RayMarchObject extends Object3D {
         Vec3 currentPos = ray.origin;
         double totalDistance = 0.0;
 
-        for (int step = 0;
-             step < MAX_STEPS && totalDistance < MAX_DISTANCE;
-             step++) {
-
-            /*
-             * Kein vorheriges toLocalPoint() mehr.
-             * getSDF übernimmt den Transform des Root-Objekts.
-             */
+        for (
+                int step = 0;
+                step < MAX_STEPS && totalDistance < MAX_DISTANCE;
+                step++
+        ) {
             double sdfValue = getSDF(currentPos);
 
-            if (Math.abs(sdfValue) < EPSILON) {
+            if (sdfValue < EPSILON) {
                 Vec3 normal = calculateNormal(currentPos);
 
                 return new Hit(
@@ -98,7 +93,7 @@ public abstract class RayMarchObject extends Object3D {
             }
 
             double stepSize = Math.max(
-                    Math.abs(sdfValue),
+                    sdfValue * 0.8,
                     MIN_DISTANCE
             );
 

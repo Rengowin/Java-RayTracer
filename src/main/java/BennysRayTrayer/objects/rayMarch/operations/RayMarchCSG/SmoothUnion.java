@@ -21,12 +21,16 @@ public class SmoothUnion extends SmoothRayMarchCSG
     }
 
     @Override
-    public double getLocalSDF(Vec3 point) {
-        double d1 = a.getSDF(point);
-        double d2 = b.getSDF(point);
+    protected double getLocalSDF(Vec3 point) {
+        double d1 = distanceA(point);
+        double d2 = distanceB(point);
 
-        double h = Math.max(k - Math.abs(d1 - d2), 0.0) / k;
+        double h = Math.max(
+                k - Math.abs(d1 - d2),
+                0.0
+        ) / k;
 
-        return Math.min(d1, d2) - h * h * k * 0.25;
+        return Math.min(d1, d2)
+                - h * h * k * 0.25;
     }
 }

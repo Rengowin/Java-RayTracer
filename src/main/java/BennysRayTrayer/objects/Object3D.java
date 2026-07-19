@@ -103,6 +103,10 @@ public abstract class Object3D {
         this.transform.setScale(scale);
     }
 
+    public void multiplyScale(Vec3 factor) {
+        this.transform.multiplyScale(factor);
+    }
+
     public Object3D setRotation(Vec3 rotation) {
         this.transform.setRotation(rotation);
         return this;

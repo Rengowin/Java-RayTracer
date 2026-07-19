@@ -7,15 +7,26 @@ import BennysRayTrayer.rendering.Material;
 
 public class RayMarchIntersect extends RayMarchCSG {
 
-    public RayMarchIntersect(RayMarchObject a, RayMarchObject b, CSGMaterialBlendMode blendMode) {
+    public RayMarchIntersect(
+            RayMarchObject a,
+            RayMarchObject b,
+            CSGMaterialBlendMode blendMode
+    ) {
         super(a, b, blendMode);
     }
 
-    public RayMarchIntersect(RayMarchObject a, RayMarchObject b) {
+    public RayMarchIntersect(
+            RayMarchObject a,
+            RayMarchObject b
+    ) {
         super(a, b, CSGMaterialBlendMode.USE_A);
     }
 
-    public RayMarchIntersect(RayMarchObject a, RayMarchObject b, Material material) {
+    public RayMarchIntersect(
+            RayMarchObject a,
+            RayMarchObject b,
+            Material material
+    ) {
         super(a, b, CSGMaterialBlendMode.USE_A);
 
         if (material != null) {
@@ -28,12 +39,11 @@ public class RayMarchIntersect extends RayMarchCSG {
         double d1 = distanceA(point);
         double d2 = distanceB(point);
 
-        // Intersection benutzt max(...)
         return d1 >= d2 ? a : b;
     }
 
     @Override
-    public double getSDF(Vec3 point) {
+    protected double getLocalSDF(Vec3 point) {
         return Math.max(
                 distanceA(point),
                 distanceB(point)
