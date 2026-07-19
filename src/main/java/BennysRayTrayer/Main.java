@@ -3,15 +3,12 @@ package BennysRayTrayer;
 import BennysRayTrayer.core.*;
 import BennysRayTrayer.input.Input;
 import BennysRayTrayer.objects.*;
-import BennysRayTrayer.objects.Normal.HalfSpace;
-import BennysRayTrayer.objects.Normal.Quadric;
-import BennysRayTrayer.objects.csg.Cut;
-import BennysRayTrayer.objects.csg.Diff;
+import BennysRayTrayer.objects.csg.*;
+import BennysRayTrayer.objects.Normal.*;
 import BennysRayTrayer.objects.rayMarch.RayMarchObject;
-import BennysRayTrayer.objects.rayMarch.operations.SineDisplacement;
-import BennysRayTrayer.objects.rayMarch.operations.SmoothUnion;
-import BennysRayTrayer.objects.rayMarch.primitives.RayMarchSphere;
-import BennysRayTrayer.objects.rayMarch.primitives.RayMarchBox;
+import BennysRayTrayer.objects.rayMarch.primitives.*;
+import BennysRayTrayer.objects.rayMarch.operations.*;
+
 import BennysRayTrayer.rendering.*;
 import BennysRayTrayer.scene.*;
 
