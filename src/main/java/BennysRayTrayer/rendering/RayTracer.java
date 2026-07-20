@@ -11,8 +11,11 @@ public class RayTracer {
 
     static int depth = 3;
 
-    static boolean useFog = false;
-    static float fogDensity = 0.005f;
+    static boolean useFog = true;
+    static float fogDensity = 0.05f;
+
+    static int sampleCount = 1;
+    static float lightRadius = 0.7f;
 
     public static void setDepth(int depth) {
         RayTracer.depth = depth;
@@ -78,8 +81,14 @@ public class RayTracer {
         for (Light light : lights) {
             Vec3 L = light.getPosition().sub(hitPoint).normalize();
 
-            // Prüfe, ob der Punkt im Schatten liegt
-            if (!isInShadow(hitPoint, light, objects)) {
+            float lightVisibility = shadowVisibility(
+                    hitPoint,
+                    N,
+                    light,
+                    objects
+            );
+
+            if (lightVisibility > 0.0f) {
                 if (mat != null) {
                     Vec3 lightColor = light.getColorVec3();
                     if (lightColor == null || lightColor.length() == 0) {
@@ -179,22 +188,43 @@ public class RayTracer {
                 Vec3 reflectColor = traceRay(reflectRay, scene, depth - 1);
 
                 result = result.mul((float) (1.0 - mat.reflectionStrength))
-                        .add(reflectColor.mul((float) mat.reflectionStrength));
+                        .add(reflectColor.mul((float) mat.reflectionStrength).mul(0.55f));
             }
 
             if (mat.transparency > 0) {
                 Vec3 refractDir = refract(I, N, n1, n2);
 
                 if (refractDir != null) {
+
                     Ray refractRay = new Ray(
-                            hit.position.add(refractDir.mul(0.001f)),
+                            // Beim Eintritt ins nächste Medium verschieben
+                            hit.position.sub(N.mul(0.001f)),
                             refractDir
                     );
 
-                    Vec3 refractColor = traceRay(refractRay, scene, depth - 1);
+                    Vec3 refractColor = traceRay(
+                            refractRay,
+                            scene,
+                            depth - 1
+                    );
 
-                    result = result.mul((float) (1.0 - mat.transparency))
+                    result = result
+                            .mul((float) (1.0 - mat.transparency))
                             .add(refractColor.mul((float) mat.transparency));
+
+                } else {
+                    Vec3 totalReflectDir = reflect(I, N);
+
+                    Ray totalReflectRay = new Ray(
+                            hit.position.add(N.mul(0.001f)),
+                            totalReflectDir
+                    );
+
+                    result = traceRay(
+                            totalReflectRay,
+                            scene,
+                            depth - 1
+                    );
                 }
             }
         }
@@ -254,9 +284,8 @@ public class RayTracer {
     public static Vec3 skyDome(Vec3 direction) {
 
         //Problem gewesen weil cam winkel xD
-        return new Vec3(0.0f, 0.0f, 0.0f);
-
-        /*Vec3 dir = direction.normalize();
+        /*return new Vec3(0.0f, 0.0f, 0.0f);*/
+        Vec3 dir = direction.normalize();
 
         float t = (dir.y + 0.25f) / 0.55f;
         t = Math.max(0.0f, Math.min(1.0f, t));
@@ -288,6 +317,93 @@ public class RayTracer {
 
         return sky
                 .add(glowColor.mul(sunGlow))
-                .add(discColor.mul(sunDisc));*/
+                .add(discColor.mul(sunDisc));
+    }
+
+    private static float shadowVisibility(
+            Vec3 hitPoint,
+            Vec3 normal,
+            Light light,
+            Object3D[] objects
+    ) {
+
+        int visibleSamples = 0;
+
+        java.util.Random random = new java.util.Random(
+                Float.floatToIntBits(hitPoint.x)
+                        ^ Float.floatToIntBits(hitPoint.y)
+                        ^ Float.floatToIntBits(hitPoint.z)
+        );
+
+        for (int i = 0; i < sampleCount; i++) {
+
+            Vec3 offset = randomPointInSphere(random)
+                    .mul(lightRadius);
+
+            Vec3 sampledLightPosition = light.getPosition()
+                    .add(offset);
+
+            if (!isPointInShadow(
+                    hitPoint,
+                    normal,
+                    sampledLightPosition,
+                    objects
+            )) {
+                visibleSamples++;
+            }
+        }
+
+        return visibleSamples / (float) sampleCount;
+    }
+
+    private static boolean isPointInShadow(
+            Vec3 hitPoint,
+            Vec3 normal,
+            Vec3 lightPosition,
+            Object3D[] objects
+    ) {
+        Vec3 toLight = lightPosition.sub(hitPoint);
+        double lightDistance = toLight.length();
+        Vec3 lightDirection = toLight.normalize();
+
+        Ray shadowRay = new Ray(
+                // Lieber entlang der Normale verschieben als entlang des Lichtstrahls
+                hitPoint.add(normal.mul(0.001f)),
+                lightDirection
+        );
+
+        for (Object3D object : objects) {
+            Hit shadowHit = object.intersect(shadowRay);
+
+            if (shadowHit != null
+                    && shadowHit.t > 0
+                    && shadowHit.t < lightDistance) {
+
+                Material material =
+                        shadowHit.object.getMaterialAt(shadowHit.position);
+
+                if (material != null && material.transparency > 0.5) {
+                    continue;
+                }
+
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static Vec3 randomPointInSphere(java.util.Random random) {
+        while (true) {
+            Vec3 point = new Vec3(
+                    random.nextFloat() * 2.0f - 1.0f,
+                    random.nextFloat() * 2.0f - 1.0f,
+                    random.nextFloat() * 2.0f - 1.0f
+            );
+
+            if (point.length() <= 1.0f) {
+                return point;
+            }
+        }
     }
 }
