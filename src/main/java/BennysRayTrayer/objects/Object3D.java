@@ -16,8 +16,6 @@ public abstract class Object3D {
 
     protected Transform transform;
 
-    //vlt in den contructor packen
-
     public Object3D(Color color, Material material, Transform transform) {
         this.color = color;
         this.material = material;
@@ -29,7 +27,6 @@ public abstract class Object3D {
         this.material = material;
         this.transform = new Transform();
     }
-
 
     public Object3D(Color color) {
         this.color = color;
@@ -106,6 +103,10 @@ public abstract class Object3D {
         this.transform.setScale(scale);
     }
 
+    public void multiplyScale(Vec3 factor) {
+        this.transform.multiplyScale(factor);
+    }
+
     public Object3D setRotation(Vec3 rotation) {
         this.transform.setRotation(rotation);
         return this;
@@ -133,5 +134,24 @@ public abstract class Object3D {
 
     protected Vec3 toLocalDirection(Vec3 d) {
         return transform.worldToLocalDirection(d);
+    }
+
+    public Material getMaterialAt(Vec3 worldPoint) {
+        return getMaterial(); // Default: einfach das globale Material
+    }
+
+    public Object3D setLocalPosition(Vec3 position) {
+        transform.setPosition(position);
+        return this;
+    }
+
+    public Object3D setLocalRotation(Vec3 rotation) {
+        transform.setRotation(rotation);
+        return this;
+    }
+
+    public Object3D setLocalScale(Vec3 scale) {
+        transform.setScale(scale);
+        return this;
     }
 }

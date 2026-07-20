@@ -26,7 +26,7 @@ public class RayMarchTorus extends RayMarchObject {
     }
 
     @Override
-    public double getSDF(Vec3 p) {
+    public double getLocalSDF(Vec3 p) {
         Vec3 q = new Vec3(
                 (float) (Math.sqrt(p.x * p.x + p.z * p.z) - outerR),
                 p.y,

@@ -13,13 +13,11 @@ import java.util.List;
 
 public abstract class RayMarchObject extends Object3D {
 
-    // Raymarching-Parameter
-    protected static final double MAX_DISTANCE = 100.0;      // Maximale Marchierungsdistanz
-    protected static final double MIN_DISTANCE = 0.001;      // Minimales Sicherheitsabstand
-    protected static final int MAX_STEPS = 256;              // Maximale Marchierungsschritte
-    protected static final double EPSILON = 1e-4;            // Toleranz für Oberflächenerkennung
+    protected static final double MAX_DISTANCE = 100.0;
+    protected static final double MIN_DISTANCE = 1e-5;
+    protected static final int MAX_STEPS = 256;
+    protected static final double EPSILON = 1e-4;
 
-    // Für Normale-Berechnung via Finite Differences
     private static final double SDF_DELTA = 1e-4;
 
     public RayMarchObject(Color color, Material material) {
@@ -38,24 +36,53 @@ public abstract class RayMarchObject extends Object3D {
         super();
     }
 
-    /*
-
+    /**
+     * Die eigentliche Form im lokalen Koordinatensystem.
      */
-    public abstract double getSDF(Vec3 point);
+    protected abstract double getLocalSDF(Vec3 localPoint);
+
+    /**
+     * Wertet dieses Objekt in seinem Parent-Koordinatensystem aus.
+     *
+     * Bei einem Root-Objekt ist der Parent-Space die Welt.
+     * Bei einem Child in einer CSG-Operation ist der Parent-Space
+     * der lokale Raum der CSG-Operation.
+     */
+    public final double getSDF(Vec3 pointInParentSpace) {
+        Vec3 localPoint = toLocalPoint(pointInParentSpace);
+
+        double localDistance = getLocalSDF(localPoint);
+
+        Vec3 scale = transform.getScale();
+
+        double minScale = Math.min(
+                Math.abs(scale.x),
+                Math.min(
+                        Math.abs(scale.y),
+                        Math.abs(scale.z)
+                )
+        );
+
+        if (minScale < 1e-6) {
+            return Double.MAX_VALUE;
+        }
+
+        return localDistance * minScale;
+    }
 
     private Hit raymarchRay(Ray ray) {
-
         Vec3 currentPos = ray.origin;
         double totalDistance = 0.0;
-        int steps = 0;
 
-        while (steps < MAX_STEPS && totalDistance < MAX_DISTANCE) {
-            Vec3 localPos = toLocalPoint(currentPos);
-            double sdfValue = getSDF(localPos);
+        for (
+                int step = 0;
+                step < MAX_STEPS && totalDistance < MAX_DISTANCE;
+                step++
+        ) {
+            double sdfValue = getSDF(currentPos);
 
-            if(sdfValue < EPSILON){
-                Vec3 normal = calculateNormal(localPos);
-                normal = toWorldDirection(normal);
+            if (sdfValue < EPSILON) {
+                Vec3 normal = calculateNormal(currentPos);
 
                 return new Hit(
                         totalDistance,
@@ -65,47 +92,61 @@ public abstract class RayMarchObject extends Object3D {
                 );
             }
 
-            //double stepSize = Math.max(sdfValue * 0.8, MIN_DISTANCE);
+            double stepSize = Math.max(
+                    sdfValue * 0.8,
+                    MIN_DISTANCE
+            );
 
-            double stepSize = sdfValue;
+            currentPos = currentPos.add(
+                    ray.direction.mul((float) stepSize)
+            );
 
-            currentPos = currentPos.add(ray.direction.mul((float) stepSize));
             totalDistance += stepSize;
-            steps++;
         }
 
         return null;
     }
 
+    /**
+     * Die SDF wird im Parent-/World-Space abgetastet.
+     * Deshalb ist die Normale anschließend ebenfalls bereits
+     * im richtigen Koordinatensystem.
+     */
     private Vec3 calculateNormal(Vec3 p) {
-        double fx = getSDF(p.add(new Vec3((float) SDF_DELTA, 0, 0)))
-                - getSDF(p.add(new Vec3((float) -SDF_DELTA, 0, 0)));
-        double fy = getSDF(p.add(new Vec3(0, (float) SDF_DELTA, 0)))
-                - getSDF(p.add(new Vec3(0, (float) -SDF_DELTA, 0)));
-        double fz = getSDF(p.add(new Vec3(0, 0, (float) SDF_DELTA)))
-                - getSDF(p.add(new Vec3(0, 0, (float) -SDF_DELTA)));
-        Vec3 normal = new Vec3((float) fx, (float) fy, (float) fz).normalize();
-        return normal;
+        float delta = (float) SDF_DELTA;
+
+        double fx = getSDF(p.add(new Vec3(delta, 0, 0)))
+                - getSDF(p.add(new Vec3(-delta, 0, 0)));
+
+        double fy = getSDF(p.add(new Vec3(0, delta, 0)))
+                - getSDF(p.add(new Vec3(0, -delta, 0)));
+
+        double fz = getSDF(p.add(new Vec3(0, 0, delta)))
+                - getSDF(p.add(new Vec3(0, 0, -delta)));
+
+        return new Vec3(
+                (float) fx,
+                (float) fy,
+                (float) fz
+        ).normalize();
     }
 
     @Override
     public List<HitInterval> intersectIntervals(Ray ray) {
-
         Hit hit = raymarchRay(ray);
-
         List<HitInterval> intervals = new ArrayList<>();
 
-        if(hit != null && hit.t > 0) {
-            HitInterval interval = new HitInterval(
+        if (hit != null && hit.t > 0) {
+            intervals.add(new HitInterval(
                     hit.t,
-                    hit.t+0.001,
+                    hit.t + 0.001,
                     hit.normal,
                     hit.normal.mul(-1),
                     this
-            );
-            intervals.add(interval);
+            ));
         }
 
         return intervals;
     }
 }
+

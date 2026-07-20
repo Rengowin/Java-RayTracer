@@ -32,18 +32,25 @@ public class RayMarchBox extends RayMarchObject {
     }
 
     @Override
-    public double getSDF(Vec3 p) {
+    public double getLocalSDF(Vec3 p) {
         Vec3 q = new Vec3(
                 Math.abs(p.x) - halfSize.x,
                 Math.abs(p.y) - halfSize.y,
                 Math.abs(p.z) - halfSize.z
         );
 
-        double outDist = Math.max(0, Math.max(q.x, Math.max(q.y, q.z)));
+        Vec3 outside = new Vec3(
+                Math.max(q.x, 0),
+                Math.max(q.y, 0),
+                Math.max(q.z, 0)
+        );
 
-        double inDist = Math.min(0, Math.max(q.x, Math.max(q.y, q.z)));
+        double outsideDistance = outside.length();
+        double insideDistance = Math.min(
+                Math.max(q.x, Math.max(q.y, q.z)),
+                0.0
+        );
 
-        return outDist + inDist;
+        return outsideDistance + insideDistance;
     }
-
 }
