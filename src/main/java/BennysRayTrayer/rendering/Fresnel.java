@@ -39,4 +39,18 @@ public class Fresnel {
     private static float clamp01(float value) {
         return Math.max(0.0f, Math.min(1.0f, value));
     }
+
+    public static float schlickDielectric(
+            float cosTheta,
+            double n1,
+            double n2
+    ) {
+        float r0 = (float) ((n1 - n2) / (n1 + n2));
+        r0 *= r0;
+
+        float cos = clamp01(cosTheta);
+        float factor = (float) Math.pow(1.0f - cos, 5.0f);
+
+        return r0 + (1.0f - r0) * factor;
+    }
 }

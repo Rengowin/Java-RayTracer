@@ -11,33 +11,64 @@ public class RayMarchSphere extends RayMarchObject {
     private double radius;
     private Displacement displacement;
 
+
     public RayMarchSphere(double radius) {
-        setRadius(radius);
+        this.radius = radius;
+
+        setBoundingSphere(
+                new Vec3(0, 0, 0),
+                this.radius
+        );
     }
 
     public RayMarchSphere(Color color, double radius) {
         super(color);
-        setRadius(radius);
+        this.radius = radius;
+
+        setBoundingSphere(
+                new Vec3(0, 0, 0),
+                this.radius
+        );
     }
 
     public RayMarchSphere(double radius, Material material) {
         super(material);
-        setRadius(radius);
+        this.radius = radius;
+
+        setBoundingSphere(
+                new Vec3(0, 0, 0),
+                this.radius
+        );
     }
 
     public RayMarchSphere(double radius, Displacement displacement) {
         this(radius);
         this.displacement = displacement;
+
+        setBoundingSphere(
+                new Vec3(0, 0, 0),
+                this.radius
+        );
     }
 
     public RayMarchSphere(Color color, double radius, Displacement displacement) {
         this(color, radius);
         this.displacement = displacement;
+
+        setBoundingSphere(
+                new Vec3(0, 0, 0),
+                this.radius
+        );
     }
 
     public RayMarchSphere(double radius, Material material, Displacement displacement) {
         this(radius, material);
         this.displacement = displacement;
+
+        setBoundingSphere(
+                new Vec3(0, 0, 0),
+                this.radius
+        );
     }
 
     public void setRadius(double radius) {

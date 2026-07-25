@@ -9,14 +9,14 @@ public class RayMarchCut extends RayMarchCSG{
             BennysRayTrayer.objects.rayMarch.RayMarchObject b,
             BennysRayTrayer.CSGMaterialBlendMode blendMode
     ) {
-        super(a, b, blendMode);
+        super(a, b, blendMode, BoundingMode.USE_A);
     }
 
     public RayMarchCut(
             BennysRayTrayer.objects.rayMarch.RayMarchObject a,
             BennysRayTrayer.objects.rayMarch.RayMarchObject b
     ) {
-        super(a, b, BennysRayTrayer.CSGMaterialBlendMode.USE_A);
+        super(a, b, BennysRayTrayer.CSGMaterialBlendMode.USE_A, BoundingMode.USE_A);
     }
 
     public RayMarchCut(
@@ -24,7 +24,7 @@ public class RayMarchCut extends RayMarchCSG{
             BennysRayTrayer.objects.rayMarch.RayMarchObject b,
             BennysRayTrayer.rendering.Material material
     ) {
-        super(a, b, BennysRayTrayer.CSGMaterialBlendMode.USE_A);
+        super(a, b, BennysRayTrayer.CSGMaterialBlendMode.USE_A, BoundingMode.USE_A);
 
         if (material != null) {
             setMaterial(material);

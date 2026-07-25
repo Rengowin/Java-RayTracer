@@ -11,24 +11,44 @@ public class RayMarchBox extends RayMarchObject {
 
     public RayMarchBox(Vec3 halfSize) {
         this.halfSize = halfSize;
+
+        setBoundingSphere(new Vec3(0, 0, 0), halfSize.length());
     }
 
     public RayMarchBox(Vec3 halfSize, Color color) {
         super(color);
         this.halfSize = halfSize;
+
+        setBoundingSphere(new Vec3(0, 0, 0), halfSize.length());
     }
 
     public RayMarchBox(Vec3 halfSize, Material material) {
         super(material);
         this.halfSize = halfSize;
+
+        setBoundingSphere(new Vec3(0, 0, 0), halfSize.length());
     }
 
     public void setHalfSize(Vec3 halfSize) {
         this.halfSize = halfSize;
+
+        setBoundingSphere(
+                new Vec3(0, 0, 0),
+                halfSize.length()
+        );
     }
 
     public void setHalfSize(double halfSize) {
-        this.halfSize = new Vec3((float)halfSize, (float)halfSize, (float)halfSize);
+        this.halfSize = new Vec3(
+                (float) halfSize,
+                (float) halfSize,
+                (float) halfSize
+        );
+
+        setBoundingSphere(
+                new Vec3(0, 0, 0),
+                this.halfSize.length()
+        );
     }
 
     @Override

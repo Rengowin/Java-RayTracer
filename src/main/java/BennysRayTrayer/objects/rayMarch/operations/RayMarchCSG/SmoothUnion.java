@@ -9,15 +9,15 @@ import BennysRayTrayer.rendering.Material;
 public class SmoothUnion extends SmoothRayMarchCSG
 {
     public SmoothUnion(RayMarchObject a, RayMarchObject b, double k, CSGMaterialBlendMode blendMode) {
-        super(a, b, k, blendMode);
+        super(a, b, k, blendMode, BoundingMode.UNION);
     }
 
     public SmoothUnion(RayMarchObject a, RayMarchObject b, double k) {
-        super(a, b, k);
+        super(a, b, k, BoundingMode.UNION);
     }
 
     public SmoothUnion(RayMarchObject a, RayMarchObject b) {
-        super(a, b);
+        super(a, b, BoundingMode.UNION);
     }
 
     @Override

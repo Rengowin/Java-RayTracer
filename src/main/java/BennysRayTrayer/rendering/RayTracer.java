@@ -16,10 +16,14 @@ public class RayTracer {
     static boolean useFog = true;
     static float fogDensity = 0.005f;
 
-    static int sampleCount = 4;
+    static int samplesPerPixel = 4;
 
-    private static final java.util.concurrent.ThreadLocalRandom random =
-            java.util.concurrent.ThreadLocalRandom.current();
+    //AO Settings
+    static boolean useAmbientOcclusion = true;
+
+    static int ambientOcclusionSamples = 8;
+    static float ambientOcclusionDistance = 2.0f;
+    static float ambientOcclusionStrength = 1.0f;
 
     public static void render(int resX, int resY, Scene scene, int[] pixels) {
         Camera cam = scene.getCamera();
@@ -37,9 +41,13 @@ public class RayTracer {
 
                         Vec3 pixelColor = new Vec3(0.0f);
 
-                        for (int sample = 0; sample < sampleCount; sample++) {
-                            float jitterX = random.nextFloat() - 0.5f;
-                            float jitterY = random.nextFloat() - 0.5f;
+                        for (int sample = 0; sample < samplesPerPixel; sample++) {
+                            Random random = new Random(
+                                    SampleSeed.createSeed(x, yy, sample)
+                            );
+
+                            float jitterX = random.nextFloat();
+                            float jitterY = random.nextFloat();
 
                             Ray ray = cam.generateRay(
                                     x+jitterX,
@@ -49,12 +57,12 @@ public class RayTracer {
                             );
 
                             pixelColor = pixelColor.add(
-                                    traceRay(ray, scene, depth)
+                                    traceRay(ray, scene, depth, random)
                             );
                         }
 
                         pixelColor = pixelColor.mul(
-                                1.0f / sampleCount
+                                1.0f / samplesPerPixel
                         );
 
                         pixels[yy * resX + x] =
@@ -71,26 +79,43 @@ public class RayTracer {
         }
     }
 
-    private static Hit findClosestHit(Ray ray, Object3D[] objects) {
-        double closestT = Double.MAX_VALUE;
-        Hit closestHit = null;
+    private static Hit findClosestHit(
+            Ray ray,
+            Object3D[] objects
+    ) {
+        double closestT = Double.POSITIVE_INFINITY;
+        Object3D closestObject = null;
 
         for (Object3D object : objects) {
-            Hit hit = object.intersect(ray);
-            if (hit != null && hit.t < closestT) {
-                closestT = hit.t;
-                closestHit = hit;
+            double distance = object.intersectDistance(
+                    ray,
+                    closestT
+            );
+
+            if (distance > 0.0
+                    && distance < closestT) {
+                closestT = distance;
+                closestObject = object;
             }
         }
 
-        return closestHit;
+        if (closestObject == null) {
+            return null;
+        }
+
+        return closestObject.createHit(
+                ray,
+                closestT
+        );
     }
 
     private static Vec3 shade(
             Camera cam,
             Hit hit,
             Light[] lights,
-            Object3D[] objects
+            Object3D[] objects,
+            Random random,
+            float ambientOcclusion
     ) {
         Vec3 hitPoint = hit.position;
         Vec3 normal = hit.normal.normalize();
@@ -112,14 +137,15 @@ public class RayTracer {
                 0.08f,
                 0.08f,
                 0.08f
-        );
+        ).mul(ambientOcclusion);
 
         for (Light light : lights) {
             float visibility = shadowVisibility(
                     hitPoint,
                     normal,
                     light,
-                    objects
+                    objects,
+                    random
             );
 
             if (visibility <= 0.0f) {
@@ -159,7 +185,8 @@ public class RayTracer {
     private static Vec3 traceRay(
             Ray ray,
             Scene scene,
-            int depth
+            int depth,
+            Random random
     ) {
         if (depth <= 0) {
             return new Vec3(0.0f);
@@ -176,21 +203,36 @@ public class RayTracer {
             return skyColor;
         }
 
-        Vec3 directLight = shade(
-                scene.getCamera(),
-                hit,
-                scene.getLights(),
-                scene.getObjects()
-        );
-
         Vec3 indirectLight = indirectBounce(
                 ray,
                 hit,
                 scene,
-                depth
+                depth,
+                random
         );
 
-        Vec3 result = directLight.add(indirectLight);
+        float ao = ambientOcclusion(
+                ray,
+                hit,
+                scene.getObjects(),
+                random
+        );
+
+        Vec3 directLight = shade(
+                scene.getCamera(),
+                hit,
+                scene.getLights(),
+                scene.getObjects(),
+                random,
+                ao
+        );
+
+        float indirectAo =
+                1.0f - 0.5f * (1.0f - ao);
+
+        Vec3 result = directLight.add(
+                indirectLight.mul(indirectAo)
+        );
 
         if (useFog) {
             Vec3 fogColor =
@@ -254,7 +296,7 @@ public class RayTracer {
         Vec3 dir = direction.normalize();
 
         float t = (dir.y + 0.25f) / 0.55f;
-        t = Math.max(0.0f, Math.min(1.0f, t));
+        t = Math.clamp(t, 0.0f, 1.0f);
         t = t * t * (3.0f - 2.0f * t);
 
         Vec3 horizon = new Vec3(1.4f, 0.55f, 0.18f);
@@ -290,7 +332,8 @@ public class RayTracer {
             Vec3 hitPoint,
             Vec3 normal,
             Light light,
-            Object3D[] objects
+            Object3D[] objects,
+            Random random
     ) {
         if (!light.castsShadow()) {
             return 1.0f;
@@ -306,12 +349,6 @@ public class RayTracer {
         }
 
         int visibleSamples = 0;
-
-        java.util.Random random = new java.util.Random(
-                Float.floatToIntBits(hitPoint.x)
-                        ^ Float.floatToIntBits(hitPoint.y)
-                        ^ Float.floatToIntBits(hitPoint.z)
-        );
 
         for (int i = 0; i < light.getShadowSamples(); i++) {
 
@@ -351,27 +388,36 @@ public class RayTracer {
         );
 
         for (Object3D object : objects) {
-            Hit shadowHit = object.intersect(shadowRay);
+            double distance = object.intersectDistance(
+                    shadowRay,
+                    lightDistance
+            );
 
-            if (shadowHit != null
-                    && shadowHit.t > 0
-                    && shadowHit.t < lightDistance) {
-
-                Material material =
-                        shadowHit.object.getMaterialAt(shadowHit.position);
-
-                if (material != null && material.transparency > 0.5) {
-                    continue;
-                }
-
-                return true;
+            if (!Double.isFinite(distance)
+                    || distance <= 0.0
+                    || distance >= lightDistance) {
+                continue;
             }
+
+            Vec3 shadowHitPosition = shadowRay.origin.add(
+                    shadowRay.direction.mul((float) distance)
+            );
+
+            Material material =
+                    object.getMaterialAt(shadowHitPosition);
+
+            if (material != null
+                    && material.transparency > 0.5) {
+                continue;
+            }
+
+            return true;
         }
 
         return false;
     }
 
-    private static Vec3 randomPointInSphere(java.util.Random random) {
+    private static Vec3 randomPointInSphere(Random random) {
         while (true) {
             Vec3 point = new Vec3(
                     random.nextFloat() * 2.0f - 1.0f,
@@ -385,7 +431,7 @@ public class RayTracer {
         }
     }
 
-    private static Vec3 sampleHemisphere(Vec3 normal) {
+    private static Vec3 sampleHemisphere(Vec3 normal, Random random) {
         Vec3 n = normal.normalize();
 
         float u1 = random.nextFloat();
@@ -415,11 +461,76 @@ public class RayTracer {
                 .normalize();
     }
 
+    private static float ambientOcclusion(
+            Ray incomingRay,
+            Hit hit,
+            Object3D[] objects,
+            Random random
+    ) {
+        if (!useAmbientOcclusion
+                || ambientOcclusionSamples <= 0) {
+            return 1.0f;
+        }
+
+        Vec3 normal = hit.normal.normalize();
+
+        if (normal.dot(incomingRay.direction) > 0.0f) {
+            normal = normal.mul(-1.0f);
+        }
+
+        float distanceSum = 0.0f;
+
+        for (int i = 0; i < ambientOcclusionSamples; i++) {
+            Vec3 direction = sampleHemisphere(
+                    normal,
+                    random
+            );
+
+            Ray aoRay = new Ray(
+                    hit.position.add(
+                            normal.mul(0.001f)
+                    ),
+                    direction
+            );
+
+            double hitDistance = findClosestDistance(
+                    aoRay,
+                    objects,
+                    ambientOcclusionDistance
+            );
+
+            if (!Double.isFinite(hitDistance)
+                    || hitDistance >= ambientOcclusionDistance) {
+                distanceSum += ambientOcclusionDistance;
+                continue;
+            }
+
+            distanceSum += (float) hitDistance;
+        }
+
+        float averageDistance =
+                distanceSum / ambientOcclusionSamples;
+
+        float visibility =
+                averageDistance / ambientOcclusionDistance;
+
+        visibility = Math.clamp(
+                visibility,
+                0.0f,
+                1.0f
+        );
+
+        return 1.0f
+                - ambientOcclusionStrength
+                * (1.0f - visibility);
+    }
+
     private static Vec3 indirectBounce(
             Ray incomingRay,
             Hit hit,
             Scene scene,
-            int depth
+            int depth,
+            Random random
     ) {
         Material material =
                 hit.object.getMaterialAt(hit.position);
@@ -478,19 +589,37 @@ public class RayTracer {
                 n2 = 1.0;
             }
 
-            bounceDirection = refract(
-                    incomingRay.direction,
-                    normal,
-                    n1,
-                    n2
+            float cosTheta = Math.max(
+                    0.0f,
+                    -incomingRay.direction.dot(normal)
             );
 
-            // Totalreflexion
-            if (bounceDirection == null) {
+            float fresnelProbability =
+                    Fresnel.schlickDielectric(
+                            cosTheta,
+                            n1,
+                            n2
+                    );
+
+            if (random.nextFloat() < fresnelProbability) {
                 bounceDirection = reflect(
                         incomingRay.direction,
                         normal
                 );
+            } else {
+                bounceDirection = refract(
+                        incomingRay.direction,
+                        normal,
+                        n1,
+                        n2
+                );
+
+                if (bounceDirection == null) {
+                    bounceDirection = reflect(
+                            incomingRay.direction,
+                            normal
+                    );
+                }
             }
         } else if (r < refractionProbability + reflectionProbability) {
             bounceDirection = reflect(
@@ -499,7 +628,7 @@ public class RayTracer {
             );
 
         } else {
-            bounceDirection = sampleHemisphere(normal);
+            bounceDirection = sampleHemisphere(normal, random);
         }
 
         Ray bounceRay = new Ray(
@@ -512,9 +641,32 @@ public class RayTracer {
         Vec3 incomingLight = traceRay(
                 bounceRay,
                 scene,
-                depth - 1
+                depth - 1,
+                random
         );
 
         return incomingLight.mul(material.albedo);
+    }
+
+    private static double findClosestDistance(
+            Ray ray,
+            Object3D[] objects,
+            double maxDistance
+    ) {
+        double closestDistance = maxDistance;
+
+        for (Object3D object : objects) {
+            double distance = object.intersectDistance(
+                    ray,
+                    closestDistance
+            );
+
+            if (distance > 0.0
+                    && distance < closestDistance) {
+                closestDistance = distance;
+            }
+        }
+
+        return closestDistance;
     }
 }

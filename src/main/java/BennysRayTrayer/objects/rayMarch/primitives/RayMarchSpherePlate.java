@@ -24,6 +24,11 @@ public class RayMarchSpherePlate extends RayMarchObject {
         this.thickness = thickness;
         this.halfSize = halfSize;
         this.offset = offset;
+
+        setBoundingSphere(
+                offset,
+                halfSize.length()
+        );
     }
 
     @Override

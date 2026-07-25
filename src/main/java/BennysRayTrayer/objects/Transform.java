@@ -9,8 +9,14 @@ public class Transform {
     private Vec3 rotation = new Vec3(0, 0, 0); // Grad
     private Vec3 scale = new Vec3(1, 1, 1);
 
+    private double minAbsScale = 1.0;
+
     private Matrix4 localToWorld = new Matrix4();
     private Matrix4 worldToLocal = new Matrix4();
+
+    public double getMinAbsScale() {
+        return minAbsScale;
+    }
 
     public void setPosition(Vec3 position) {
         this.position = position;
@@ -73,6 +79,14 @@ public class Transform {
     }
 
     private void rebuildMatrices() {
+        minAbsScale = Math.min(
+                Math.abs(scale.x),
+                Math.min(
+                        Math.abs(scale.y),
+                        Math.abs(scale.z)
+                )
+        );
+
         localToWorld = new Matrix4()
                 .scale(scale.x, scale.y, scale.z)
                 .rotateX((float)Math.toRadians(rotation.x))

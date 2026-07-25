@@ -12,15 +12,18 @@ public abstract class RayMarchCSG extends RayMarchObject {
     protected final RayMarchObject b;
     protected final CSGMaterialBlendMode blendMode;
 
-    protected RayMarchCSG(RayMarchObject a, RayMarchObject b, CSGMaterialBlendMode blendMode) {
+    protected RayMarchCSG(
+            RayMarchObject a,
+            RayMarchObject b,
+            CSGMaterialBlendMode blendMode,
+            BoundingMode boundingMode
+    ) {
         this.a = a;
         this.b = b;
         this.blendMode = blendMode;
-        applyDefaultMaterialAndColor();
-    }
 
-    public RayMarchCSG(RayMarchObject a, RayMarchObject b) {
-        this(a, b, CSGMaterialBlendMode.USE_A);
+        applyDefaultMaterialAndColor();
+        applyBoundingMode(boundingMode);
     }
 
     protected double distanceA(Vec3 point) {
@@ -29,6 +32,16 @@ public abstract class RayMarchCSG extends RayMarchObject {
 
     protected double distanceB(Vec3 point) {
         return b.getSDF(point);
+    }
+
+    private void applyBoundingMode(
+            BoundingMode boundingMode
+    ) {
+        switch (boundingMode) {
+            case UNION -> useCombinedBoundingSphere();
+            case INTERSECTION -> useSmallerBoundingSphere();
+            case USE_A -> useBoundingSphereOfA();
+        }
     }
 
     protected void applyDefaultMaterialAndColor() {
@@ -130,7 +143,117 @@ public abstract class RayMarchCSG extends RayMarchObject {
         double d1 = distanceA(point);
         double d2 = distanceB(point);
 
-        // Standard für Union:
         return d1 <= d2 ? a : b;
+    }
+
+    protected void useBoundingSphereOfA() {
+        if (!a.hasBoundingSphere()) {
+            return;
+        }
+
+        setBoundingSphere(
+                a.getBoundingCenterInParentSpace(),
+                a.getBoundingRadiusInParentSpace()
+        );
+    }
+
+    protected void useCombinedBoundingSphere() {
+        if (!a.hasBoundingSphere()
+                || !b.hasBoundingSphere()) {
+            return;
+        }
+
+        Vec3 centerA =
+                a.getBoundingCenterInParentSpace();
+
+        Vec3 centerB =
+                b.getBoundingCenterInParentSpace();
+
+        double radiusA =
+                a.getBoundingRadiusInParentSpace();
+
+        double radiusB =
+                b.getBoundingRadiusInParentSpace();
+
+        Vec3 difference = centerB.sub(centerA);
+        double centerDistance = difference.length();
+
+        if (radiusA >= centerDistance + radiusB) {
+            setBoundingSphere(centerA, radiusA);
+            return;
+        }
+
+        if (radiusB >= centerDistance + radiusA) {
+            setBoundingSphere(centerB, radiusB);
+            return;
+        }
+
+        if (centerDistance < 1e-9) {
+            setBoundingSphere(
+                    centerA,
+                    Math.max(radiusA, radiusB)
+            );
+            return;
+        }
+
+        double combinedRadius =
+                (centerDistance + radiusA + radiusB) * 0.5;
+
+        double shiftFromA =
+                combinedRadius - radiusA;
+
+        Vec3 combinedCenter = centerA.add(
+                difference.mul(
+                        (float) (shiftFromA / centerDistance)
+                )
+        );
+
+        setBoundingSphere(
+                combinedCenter,
+                combinedRadius
+        );
+    }
+
+    protected void useSmallerBoundingSphere() {
+        boolean hasA = a.hasBoundingSphere();
+        boolean hasB = b.hasBoundingSphere();
+
+        if (!hasA && !hasB) {
+            return;
+        }
+
+        if (hasA && !hasB) {
+            setBoundingSphere(
+                    a.getBoundingCenterInParentSpace(),
+                    a.getBoundingRadiusInParentSpace()
+            );
+            return;
+        }
+
+        if (!hasA) {
+            setBoundingSphere(
+                    b.getBoundingCenterInParentSpace(),
+                    b.getBoundingRadiusInParentSpace()
+            );
+            return;
+        }
+
+        double radiusA =
+                a.getBoundingRadiusInParentSpace();
+
+        double radiusB =
+                b.getBoundingRadiusInParentSpace();
+
+        if (radiusA <= radiusB) {
+            setBoundingSphere(
+                    a.getBoundingCenterInParentSpace(),
+                    radiusA
+            );
+        } else {
+            setBoundingSphere(
+                    b.getBoundingCenterInParentSpace(),
+                    radiusB
+            );
+        }
     }
 }

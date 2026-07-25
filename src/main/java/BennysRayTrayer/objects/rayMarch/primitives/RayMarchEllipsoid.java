@@ -14,6 +14,19 @@ public class RayMarchEllipsoid extends RayMarchObject {
         this.radiusX = radiusX;
         this.radiusY = radiusY;
         this.radiusZ = radiusZ;
+
+        double boundingRadius = Math.max(
+                Math.abs(radiusX),
+                Math.max(
+                        Math.abs(radiusY),
+                        Math.abs(radiusZ)
+                )
+        );
+
+        setBoundingSphere(
+                new Vec3(0, 0, 0),
+                boundingRadius
+        );
     }
 
     public RayMarchEllipsoid(Vec3 radius, BennysRayTrayer.rendering.Material material) {
@@ -21,6 +34,19 @@ public class RayMarchEllipsoid extends RayMarchObject {
         this.radiusX = radius.x;
         this.radiusY = radius.y;
         this.radiusZ = radius.z;
+
+        double boundingRadius = Math.max(
+                Math.abs(radiusX),
+                Math.max(
+                        Math.abs(radiusY),
+                        Math.abs(radiusZ)
+                )
+        );
+
+        setBoundingSphere(
+                new Vec3(0, 0, 0),
+                boundingRadius
+        );
     }
 
     @Override

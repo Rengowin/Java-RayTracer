@@ -154,4 +154,26 @@ public abstract class Object3D {
         transform.setScale(scale);
         return this;
     }
+
+    public double intersectDistance(
+            Ray ray,
+            double maxDistance
+    ) {
+        Hit hit = intersect(ray);
+
+        if (hit == null
+                || hit.t <= 0.0
+                || hit.t >= maxDistance) {
+            return Double.POSITIVE_INFINITY;
+        }
+
+        return hit.t;
+    }
+
+    public Hit createHit(
+            Ray ray,
+            double distance
+    ) {
+        return intersect(ray);
+    }
 }

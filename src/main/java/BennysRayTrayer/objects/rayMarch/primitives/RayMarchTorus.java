@@ -13,16 +13,32 @@ public class RayMarchTorus extends RayMarchObject {
     public RayMarchTorus(double outerR, double innerR) {
         this.outerR = outerR;
         this.innerR = innerR;
+
+        setBoundingSphere(
+                new Vec3(0, 0, 0),
+                outerR + innerR
+        );
     }
     public RayMarchTorus(double outerR, double innerR, Color color) {
         super(color);
         this.outerR = outerR;
         this.innerR = innerR;
+
+        setBoundingSphere(
+                new Vec3(0, 0, 0),
+                outerR + innerR
+        );
     }
 
     public RayMarchTorus(double outerR, double innerR, Material material) {
         super(material);
         this.outerR = outerR;
+        this.innerR = innerR;
+
+        setBoundingSphere(
+                new Vec3(0, 0, 0),
+                outerR + innerR
+        );
     }
 
     @Override

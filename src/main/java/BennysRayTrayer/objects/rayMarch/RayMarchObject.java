@@ -20,6 +20,9 @@ public abstract class RayMarchObject extends Object3D {
 
     private static final double SDF_DELTA = 1e-4;
 
+    private Vec3 boundingCenter = null;
+    private double boundingRadius = -1.0;
+
     public RayMarchObject(Color color, Material material) {
         super(color, material);
     }
@@ -36,60 +39,60 @@ public abstract class RayMarchObject extends Object3D {
         super();
     }
 
-    /**
-     * Die eigentliche Form im lokalen Koordinatensystem.
-     */
+    public void setBoundingSphere(
+            Vec3 center,
+            double radius
+    ) {
+        this.boundingCenter = center;
+        this.boundingRadius = radius;
+    }
+
+    public boolean hasBoundingSphere() {
+        return boundingCenter != null
+                && boundingRadius > 0.0;
+    }
+
     protected abstract double getLocalSDF(Vec3 localPoint);
 
-    /**
-     * Wertet dieses Objekt in seinem Parent-Koordinatensystem aus.
-     *
-     * Bei einem Root-Objekt ist der Parent-Space die Welt.
-     * Bei einem Child in einer CSG-Operation ist der Parent-Space
-     * der lokale Raum der CSG-Operation.
-     */
     public final double getSDF(Vec3 pointInParentSpace) {
-        Vec3 localPoint = toLocalPoint(pointInParentSpace);
+        double distanceScale =
+                transform.getMinAbsScale();
 
-        double localDistance = getLocalSDF(localPoint);
-
-        Vec3 scale = transform.getScale();
-
-        double minScale = Math.min(
-                Math.abs(scale.x),
-                Math.min(
-                        Math.abs(scale.y),
-                        Math.abs(scale.z)
-                )
-        );
-
-        if (minScale < 1e-6) {
+        if (distanceScale < 1e-6) {
             return Double.MAX_VALUE;
         }
 
-        return localDistance * minScale;
+        Vec3 localPoint =
+                toLocalPoint(pointInParentSpace);
+
+        double localDistance =
+                getLocalSDF(localPoint);
+
+        return localDistance * distanceScale;
     }
 
-    private Hit raymarchRay(Ray ray) {
+    private double raymarchDistance(
+            Ray ray,
+            double maxDistance
+    ) {
         Vec3 currentPos = ray.origin;
         double totalDistance = 0.0;
 
+        double distanceLimit = Math.min(
+                maxDistance,
+                MAX_DISTANCE
+        );
+
         for (
                 int step = 0;
-                step < MAX_STEPS && totalDistance < MAX_DISTANCE;
+                step < MAX_STEPS
+                        && totalDistance < distanceLimit;
                 step++
         ) {
             double sdfValue = getSDF(currentPos);
 
             if (sdfValue < EPSILON) {
-                Vec3 normal = calculateNormal(currentPos);
-
-                return new Hit(
-                        totalDistance,
-                        currentPos,
-                        normal,
-                        this
-                );
+                return totalDistance;
             }
 
             double stepSize = Math.max(
@@ -97,14 +100,18 @@ public abstract class RayMarchObject extends Object3D {
                     MIN_DISTANCE
             );
 
-            currentPos = currentPos.add(
-                    ray.direction.mul((float) stepSize)
-            );
-
             totalDistance += stepSize;
+
+            if (totalDistance >= distanceLimit) {
+                return Double.POSITIVE_INFINITY;
+            }
+
+            currentPos = ray.origin.add(
+                    ray.direction.mul((float) totalDistance)
+            );
         }
 
-        return null;
+        return Double.POSITIVE_INFINITY;
     }
 
     /**
@@ -115,38 +122,195 @@ public abstract class RayMarchObject extends Object3D {
     private Vec3 calculateNormal(Vec3 p) {
         float delta = (float) SDF_DELTA;
 
-        double fx = getSDF(p.add(new Vec3(delta, 0, 0)))
-                - getSDF(p.add(new Vec3(-delta, 0, 0)));
+        Vec3 e1 = new Vec3( 1.0f, -1.0f, -1.0f);
+        Vec3 e2 = new Vec3(-1.0f, -1.0f,  1.0f);
+        Vec3 e3 = new Vec3(-1.0f,  1.0f, -1.0f);
+        Vec3 e4 = new Vec3( 1.0f,  1.0f,  1.0f);
 
-        double fy = getSDF(p.add(new Vec3(0, delta, 0)))
-                - getSDF(p.add(new Vec3(0, -delta, 0)));
+        double d1 = getSDF(
+                p.add(e1.mul(delta))
+        );
 
-        double fz = getSDF(p.add(new Vec3(0, 0, delta)))
-                - getSDF(p.add(new Vec3(0, 0, -delta)));
+        double d2 = getSDF(
+                p.add(e2.mul(delta))
+        );
 
-        return new Vec3(
-                (float) fx,
-                (float) fy,
-                (float) fz
-        ).normalize();
+        double d3 = getSDF(
+                p.add(e3.mul(delta))
+        );
+
+        double d4 = getSDF(
+                p.add(e4.mul(delta))
+        );
+
+        return e1.mul((float) d1)
+                .add(e2.mul((float) d2))
+                .add(e3.mul((float) d3))
+                .add(e4.mul((float) d4))
+                .normalize();
     }
 
     @Override
     public List<HitInterval> intersectIntervals(Ray ray) {
-        Hit hit = raymarchRay(ray);
+        double distance = raymarchDistance(
+                ray,
+                MAX_DISTANCE
+        );
+
         List<HitInterval> intervals = new ArrayList<>();
 
-        if (hit != null && hit.t > 0) {
-            intervals.add(new HitInterval(
-                    hit.t,
-                    hit.t + 0.001,
-                    hit.normal,
-                    hit.normal.mul(-1),
-                    this
-            ));
+        if (!Double.isFinite(distance)
+                || distance <= 0.0) {
+            return intervals;
         }
 
+        Hit hit = createHit(
+                ray,
+                distance
+        );
+
+        intervals.add(new HitInterval(
+                hit.t,
+                hit.t + 0.001,
+                hit.normal,
+                hit.normal.mul(-1.0f),
+                this
+        ));
+
         return intervals;
+    }
+
+    @Override
+    public Hit createHit(
+            Ray ray,
+            double distance
+    ) {
+        if (!Double.isFinite(distance)
+                || distance <= 0.0) {
+            return null;
+        }
+
+        Vec3 position = ray.origin.add(
+                ray.direction.mul((float) distance)
+        );
+
+        Vec3 normal = calculateNormal(position);
+
+        return new Hit(
+                distance,
+                position,
+                normal,
+                this
+        );
+    }
+
+    @Override
+    public double intersectDistance(
+            Ray ray,
+            double maxDistance
+    ) {
+        if (hasBoundingSphere()
+                && !intersectsBoundingSphere(
+                ray,
+                maxDistance
+        )) {
+            return Double.POSITIVE_INFINITY;
+        }
+
+        return raymarchDistance(
+                ray,
+                maxDistance
+        );
+    }
+
+    private boolean intersectsBoundingSphere(
+            Ray ray,
+            double maxDistance
+    ) {
+        Vec3 centerWorld = toWorldPoint(
+                boundingCenter
+        );
+
+        Vec3 scale = transform.getScale();
+
+        double maxScale = Math.max(
+                Math.abs(scale.x),
+                Math.max(
+                        Math.abs(scale.y),
+                        Math.abs(scale.z)
+                )
+        );
+
+        double radiusWorld =
+                boundingRadius * maxScale;
+
+        Vec3 originToCenter =
+                ray.origin.sub(centerWorld);
+
+        double b =
+                originToCenter.dot(ray.direction);
+
+        double c =
+                originToCenter.dot(originToCenter)
+                        - radiusWorld * radiusWorld;
+
+        double discriminant =
+                b * b - c;
+
+        if (discriminant < 0.0) {
+            return false;
+        }
+
+        double sqrtDiscriminant =
+                Math.sqrt(discriminant);
+
+        double tNear =
+                -b - sqrtDiscriminant;
+
+        double tFar =
+                -b + sqrtDiscriminant;
+
+        if (tFar <= 0.0) {
+            return false;
+        }
+
+        return tNear < maxDistance;
+    }
+
+    public Vec3 getBoundingCenter() {
+        return boundingCenter;
+    }
+
+    public double getBoundingRadius() {
+        return boundingRadius;
+    }
+
+    public Vec3 getBoundingCenterInParentSpace() {
+        if (!hasBoundingSphere()) {
+            return null;
+        }
+
+        return toWorldPoint(
+                boundingCenter
+        );
+    }
+
+    public double getBoundingRadiusInParentSpace() {
+        if (!hasBoundingSphere()) {
+            return -1.0;
+        }
+
+        Vec3 scale = transform.getScale();
+
+        double maxScale = Math.max(
+                Math.abs(scale.x),
+                Math.max(
+                        Math.abs(scale.y),
+                        Math.abs(scale.z)
+                )
+        );
+
+        return boundingRadius * maxScale;
     }
 }
 

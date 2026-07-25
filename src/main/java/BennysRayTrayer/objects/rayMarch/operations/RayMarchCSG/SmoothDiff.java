@@ -10,15 +10,15 @@ public class SmoothDiff extends SmoothRayMarchCSG {
 
 
     public SmoothDiff(RayMarchObject a, RayMarchObject b, double k, CSGMaterialBlendMode blendMode) {
-        super(a, b, k, blendMode);
+        super(a, b, k, blendMode, BoundingMode.USE_A);
     }
 
     public SmoothDiff(RayMarchObject a, RayMarchObject b, double k) {
-        super(a, b, k, CSGMaterialBlendMode.USE_A);
+        super(a, b, k, CSGMaterialBlendMode.USE_A, BoundingMode.USE_A);
     }
 
     public SmoothDiff(RayMarchObject a, RayMarchObject b) {
-        super(a, b);
+        super(a, b, BoundingMode.USE_A);
     }
 
     @Override

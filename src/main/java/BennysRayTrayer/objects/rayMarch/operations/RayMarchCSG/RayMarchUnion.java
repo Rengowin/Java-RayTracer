@@ -9,14 +9,14 @@ public class RayMarchUnion extends RayMarchCSG{
             BennysRayTrayer.objects.rayMarch.RayMarchObject b,
             BennysRayTrayer.CSGMaterialBlendMode blendMode
     ) {
-        super(a, b, blendMode);
+        super(a, b, blendMode,BoundingMode.UNION);
     }
 
     public RayMarchUnion(
             BennysRayTrayer.objects.rayMarch.RayMarchObject a,
             BennysRayTrayer.objects.rayMarch.RayMarchObject b
     ) {
-        super(a, b, BennysRayTrayer.CSGMaterialBlendMode.USE_A);
+        super(a, b, BennysRayTrayer.CSGMaterialBlendMode.USE_A, BoundingMode.UNION);
     }
 
     public RayMarchUnion(
@@ -24,7 +24,7 @@ public class RayMarchUnion extends RayMarchCSG{
             BennysRayTrayer.objects.rayMarch.RayMarchObject b,
             BennysRayTrayer.rendering.Material material
     ) {
-        super(a, b, BennysRayTrayer.CSGMaterialBlendMode.USE_A);
+        super(a, b, BennysRayTrayer.CSGMaterialBlendMode.USE_A, BoundingMode.UNION);
 
         if (material != null) {
             setMaterial(material);

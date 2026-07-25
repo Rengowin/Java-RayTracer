@@ -14,15 +14,15 @@ public class SmoothIntersect extends SmoothRayMarchCSG {
             double k,
             CSGMaterialBlendMode blendMode
     ) {
-        super(a, b, k, blendMode);
+        super(a, b, k, blendMode, BoundingMode.INTERSECTION);
     }
 
     public SmoothIntersect(RayMarchObject a, RayMarchObject b, double k) {
-        super(a, b, k);
+        super(a, b, k, BoundingMode.INTERSECTION);
     }
 
     public SmoothIntersect(RayMarchObject a, RayMarchObject b) {
-        super(a, b);
+        super(a, b, BoundingMode.INTERSECTION);
     }
 
     @Override

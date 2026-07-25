@@ -9,15 +9,15 @@ import BennysRayTrayer.rendering.Material;
 public class SmoothCut extends SmoothRayMarchCSG {
 
     public SmoothCut(RayMarchObject a, RayMarchObject b, double k, CSGMaterialBlendMode blendMode) {
-        super(a, b, k, blendMode);
+        super(a, b, k, blendMode, BoundingMode.USE_A);
     }
 
     public SmoothCut(RayMarchObject a, RayMarchObject b, double k) {
-        super(a, b, k, CSGMaterialBlendMode.USE_A);
+        super(a, b, k, CSGMaterialBlendMode.USE_A, BoundingMode.USE_A);
     }
 
     public SmoothCut(RayMarchObject a, RayMarchObject b) {
-        super(a,  b);
+        super(a, b, BoundingMode.USE_A);
     }
 
 

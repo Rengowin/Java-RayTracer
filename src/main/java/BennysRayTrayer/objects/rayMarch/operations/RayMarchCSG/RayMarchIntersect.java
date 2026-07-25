@@ -12,14 +12,14 @@ public class RayMarchIntersect extends RayMarchCSG {
             RayMarchObject b,
             CSGMaterialBlendMode blendMode
     ) {
-        super(a, b, blendMode);
+        super(a, b, blendMode, BoundingMode.INTERSECTION);
     }
 
     public RayMarchIntersect(
             RayMarchObject a,
             RayMarchObject b
     ) {
-        super(a, b, CSGMaterialBlendMode.USE_A);
+        super(a, b, CSGMaterialBlendMode.USE_A, BoundingMode.INTERSECTION);
     }
 
     public RayMarchIntersect(
@@ -27,7 +27,7 @@ public class RayMarchIntersect extends RayMarchCSG {
             RayMarchObject b,
             Material material
     ) {
-        super(a, b, CSGMaterialBlendMode.USE_A);
+        super(a, b, CSGMaterialBlendMode.USE_A, BoundingMode.INTERSECTION);
 
         if (material != null) {
             setMaterial(material);

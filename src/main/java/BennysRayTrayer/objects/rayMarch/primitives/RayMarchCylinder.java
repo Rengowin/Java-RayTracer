@@ -13,18 +13,24 @@ public class RayMarchCylinder extends RayMarchObject {
     public RayMarchCylinder(double radius, double height) {
         this.radius = radius;
         this.height = height;
+
+        updateBoundingSphere();
     }
 
     public RayMarchCylinder(double radius, double height, Color color) {
         super(color);
         this.radius = radius;
         this.height = height;
+
+        updateBoundingSphere();
     }
 
     public RayMarchCylinder(double radius, double height, Material material) {
         super(material);
         this.radius = radius;
         this.height = height;
+
+        updateBoundingSphere();
     }
 
     @Override
@@ -38,4 +44,17 @@ public class RayMarchCylinder extends RayMarchObject {
         return Math.min(Math.max(d.x, d.y), 0.0) + Math.sqrt(Math.max(d.x, 0.0) * Math.max(d.x, 0.0) + Math.max(d.y, 0.0) * Math.max(d.y, 0.0));
     }
 
+    private void updateBoundingSphere() {
+        double halfHeight = height * 0.5;
+
+        double bound = Math.sqrt(
+                radius * radius
+                        + halfHeight * halfHeight
+        );
+
+        setBoundingSphere(
+                new Vec3(0, 0, 0),
+                bound
+        );
+    }
 }
