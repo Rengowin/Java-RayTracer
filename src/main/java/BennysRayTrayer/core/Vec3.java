@@ -30,6 +30,18 @@ public class Vec3 {
         return new Vec3(this.x * scalar, this.y * scalar, this.z * scalar);
     }
 
+    public Vec3 mul(Vec3 other) {
+        return new Vec3(this.x * other.x, this.y * other.y, this.z * other.z);
+    }
+
+    public Vec3 div(float scalar){
+        return new Vec3(this.x / scalar, this.y / scalar, this.z / scalar);
+    }
+
+    public Vec3 clamp(float min, float max){
+        return new Vec3(Math.max(min, Math.min(max, this.x)), Math.max(min, Math.min(max, this.y)), Math.max(min, Math.min(max, this.z)));
+    }
+
     public float dot(Vec3 other) {
         return this.x * other.x + this.y * other.y + this.z * other.z;
     }

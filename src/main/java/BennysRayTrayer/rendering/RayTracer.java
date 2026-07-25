@@ -7,22 +7,19 @@ import BennysRayTrayer.objects.Object3D;
 import BennysRayTrayer.scene.Camera;
 import BennysRayTrayer.scene.Scene;
 
+import java.util.Random;
+
 public class RayTracer {
 
     static int depth = 3;
 
     static boolean useFog = true;
-    static float fogDensity = 0.05f;
+    static float fogDensity = 0.005f;
 
-    static int sampleCount = 1;
-    static float lightRadius = 0.7f;
+    static int sampleCount = 4;
 
-    public static void setDepth(int depth) {
-        RayTracer.depth = depth;
-    }
-    public static int getDepth() {
-        return depth;
-    }
+    private static final java.util.concurrent.ThreadLocalRandom random =
+            java.util.concurrent.ThreadLocalRandom.current();
 
     public static void render(int resX, int resY, Scene scene, int[] pixels) {
         Camera cam = scene.getCamera();
@@ -37,10 +34,33 @@ public class RayTracer {
 
                 jobs.add(() -> {
                     for (int x = 0; x < resX; x++) {
-                        Ray ray = cam.generateRay(x, yy, resX, resY);
-                        Vec3 pixelColor = traceRay(ray, scene, depth);
-                        pixels[yy * resX + x] = colorToPixel(pixelColor);
+
+                        Vec3 pixelColor = new Vec3(0.0f);
+
+                        for (int sample = 0; sample < sampleCount; sample++) {
+                            float jitterX = random.nextFloat() - 0.5f;
+                            float jitterY = random.nextFloat() - 0.5f;
+
+                            Ray ray = cam.generateRay(
+                                    x+jitterX,
+                                    yy+jitterY,
+                                    resX,
+                                    resY
+                            );
+
+                            pixelColor = pixelColor.add(
+                                    traceRay(ray, scene, depth)
+                            );
+                        }
+
+                        pixelColor = pixelColor.mul(
+                                1.0f / sampleCount
+                        );
+
+                        pixels[yy * resX + x] =
+                                colorToPixel(pixelColor);
                     }
+
                     return null;
                 });
             }
@@ -66,170 +86,116 @@ public class RayTracer {
         return closestHit;
     }
 
-    private static Vec3 shade(Camera cam, Hit hit, Light[] lights, Object3D[] objects) {
+    private static Vec3 shade(
+            Camera cam,
+            Hit hit,
+            Light[] lights,
+            Object3D[] objects
+    ) {
         Vec3 hitPoint = hit.position;
-        Vec3 N = hit.normal.normalize();
-        Vec3 V = cam.getPosition().sub(hitPoint).normalize();
+        Vec3 normal = hit.normal.normalize();
+        Vec3 viewDirection =
+                cam.getPosition().sub(hitPoint).normalize();
 
-        if (N.dot(V) < 0) {
-            N = N.mul(-1);
+        if (normal.dot(viewDirection) < 0.0f) {
+            normal = normal.mul(-1.0f);
         }
 
-        Vec3 pixelColor = new Vec3(0.08f, 0.08f, 0.08f);
-        Material mat = hit.object.getMaterialAt(hitPoint);
+        Material material =
+                hit.object.getMaterialAt(hitPoint);
+
+        if (material == null) {
+            return new Vec3(0.0f);
+        }
+
+        Vec3 result = new Vec3(
+                0.08f,
+                0.08f,
+                0.08f
+        );
 
         for (Light light : lights) {
-            Vec3 L = light.getPosition().sub(hitPoint).normalize();
-
-            float lightVisibility = shadowVisibility(
+            float visibility = shadowVisibility(
                     hitPoint,
-                    N,
+                    normal,
                     light,
                     objects
             );
 
-            if (lightVisibility > 0.0f) {
-                if (mat != null) {
-                    Vec3 lightColor = light.getColorVec3();
-                    if (lightColor == null || lightColor.length() == 0) {
-                        lightColor = new Vec3(1, 1, 1);
-                    }
-                    Vec3 contrib = CookTorrance.shade(
-                            mat.albedo, mat.roughness, mat.metallic,
-                            N, V, L, lightColor, light.getIntensity()
-                    );
-                    pixelColor = pixelColor.add(contrib);
-                } else {
-                    float intensity = Math.max(0, N.dot(L)) * (float) light.getIntensity();
-                    Vec3 objColor = hit.object.getColorVec3();
-                    if (objColor != null) {
-                        pixelColor = pixelColor.add(objColor.mul(intensity));
-                    }
-                }
+            if (visibility <= 0.0f) {
+                continue;
             }
+
+            Vec3 lightDirection =
+                    light.getPosition()
+                            .sub(hitPoint)
+                            .normalize();
+
+            Vec3 lightColor = light.getColor().toVec3();
+
+            if (lightColor == null
+                    || lightColor.length() == 0.0f) {
+                lightColor = new Vec3(1.0f);
+            }
+
+            Vec3 contribution =
+                    CookTorrance.shade(
+                            material,
+                            normal,
+                            viewDirection,
+                            lightDirection,
+                            lightColor,
+                            light.getIntensity()
+                    );
+
+            result = result.add(
+                    contribution.mul(visibility)
+            );
         }
 
-        return pixelColor;
+        return result;
     }
 
-    private static boolean isInShadow(
-            Vec3 hitPoint,
-            Light light,
-            Object3D[] objects
+    private static Vec3 traceRay(
+            Ray ray,
+            Scene scene,
+            int depth
     ) {
-        Vec3 lightDir = light.getPosition().sub(hitPoint);
-        double lightDist = lightDir.length();
+        if (depth <= 0) {
+            return new Vec3(0.0f);
+        }
 
-        Ray shadowRay = new Ray(
-                hitPoint.add(lightDir.normalize().mul(0.0001f)),
-                lightDir.normalize()
+        Hit hit = findClosestHit(
+                ray,
+                scene.getObjects()
         );
 
-        for (Object3D object : objects) {
-            Hit hit = object.intersect(shadowRay);
-
-            if (hit != null && hit.t > 0 && hit.t < lightDist) {
-                Material mat = hit.object.getMaterialAt(hit.position);
-
-                if (mat != null && mat.transparency > 0.5) {
-                    continue;
-                }
-
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    private static Vec3 traceRay(Ray ray, Scene scene, int depth) {
-        Hit hit = findClosestHit(ray, scene.getObjects());
-
-        Vec3 skydome = skyDome(ray.direction);
+        Vec3 skyColor = skyDome(ray.direction);
 
         if (hit == null) {
-            return skydome;
+            return skyColor;
         }
 
-        Vec3 fogColor = skydome.mul(0.75f);
-
-        Vec3 localColor = shade(
+        Vec3 directLight = shade(
                 scene.getCamera(),
                 hit,
                 scene.getLights(),
                 scene.getObjects()
         );
 
-        Vec3 result = localColor;
-        Material mat = hit.object.getMaterialAt(hit.position);
+        Vec3 indirectLight = indirectBounce(
+                ray,
+                hit,
+                scene,
+                depth
+        );
 
-        if (depth > 0 && mat != null) {
-
-            Vec3 I = ray.direction.normalize();
-            Vec3 N = hit.normal.normalize();
-
-            double n1 = 1.0;
-            double n2 = mat.refractiveIndex;
-
-            if (I.dot(N) > 0) {
-                N = N.mul(-1);
-                n1 = mat.refractiveIndex;
-                n2 = 1.0;
-            }
-
-            if (mat.reflectionStrength > 0) {
-                Vec3 reflectDir = reflect(I, N);
-
-                Ray reflectRay = new Ray(
-                        hit.position.add(reflectDir.mul(0.001f)),
-                        reflectDir
-                );
-
-                Vec3 reflectColor = traceRay(reflectRay, scene, depth - 1);
-
-                result = result.mul((float) (1.0 - mat.reflectionStrength))
-                        .add(reflectColor.mul((float) mat.reflectionStrength).mul(0.55f));
-            }
-
-            if (mat.transparency > 0) {
-                Vec3 refractDir = refract(I, N, n1, n2);
-
-                if (refractDir != null) {
-
-                    Ray refractRay = new Ray(
-                            // Beim Eintritt ins nächste Medium verschieben
-                            hit.position.sub(N.mul(0.001f)),
-                            refractDir
-                    );
-
-                    Vec3 refractColor = traceRay(
-                            refractRay,
-                            scene,
-                            depth - 1
-                    );
-
-                    result = result
-                            .mul((float) (1.0 - mat.transparency))
-                            .add(refractColor.mul((float) mat.transparency));
-
-                } else {
-                    Vec3 totalReflectDir = reflect(I, N);
-
-                    Ray totalReflectRay = new Ray(
-                            hit.position.add(N.mul(0.001f)),
-                            totalReflectDir
-                    );
-
-                    result = traceRay(
-                            totalReflectRay,
-                            scene,
-                            depth - 1
-                    );
-                }
-            }
-        }
+        Vec3 result = directLight.add(indirectLight);
 
         if (useFog) {
+            Vec3 fogColor =
+                    skyColor.mul(0.75f);
+
             result = applyFog(
                     result,
                     hit.t,
@@ -239,7 +205,7 @@ public class RayTracer {
         }
 
         return result;
-    }
+}
 
     private static int colorToPixel(Vec3 color) {
         // Tone-Mapping: Reinhard (verhindert Überbelichtung)
@@ -326,6 +292,18 @@ public class RayTracer {
             Light light,
             Object3D[] objects
     ) {
+        if (!light.castsShadow()) {
+            return 1.0f;
+        }
+
+        if (!light.isAreaLight() || light.getShadowSamples() == 1) {
+            return isPointInShadow(
+                    hitPoint,
+                    normal,
+                    light.getPosition(),
+                    objects
+            ) ? 0.0f : 1.0f;
+        }
 
         int visibleSamples = 0;
 
@@ -335,10 +313,10 @@ public class RayTracer {
                         ^ Float.floatToIntBits(hitPoint.z)
         );
 
-        for (int i = 0; i < sampleCount; i++) {
+        for (int i = 0; i < light.getShadowSamples(); i++) {
 
             Vec3 offset = randomPointInSphere(random)
-                    .mul(lightRadius);
+                    .mul((float) light.getRadius());
 
             Vec3 sampledLightPosition = light.getPosition()
                     .add(offset);
@@ -353,7 +331,7 @@ public class RayTracer {
             }
         }
 
-        return visibleSamples / (float) sampleCount;
+        return visibleSamples / (float) light.getShadowSamples();
     }
 
     private static boolean isPointInShadow(
@@ -405,5 +383,138 @@ public class RayTracer {
                 return point;
             }
         }
+    }
+
+    private static Vec3 sampleHemisphere(Vec3 normal) {
+        Vec3 n = normal.normalize();
+
+        float u1 = random.nextFloat();
+        float u2 = random.nextFloat();
+
+        float r = (float) Math.sqrt(u1);
+        float theta = 2.0f * (float) Math.PI * u2;
+
+        float localX = r * (float) Math.cos(theta);
+        float localY = r * (float) Math.sin(theta);
+        float localZ = (float) Math.sqrt(1.0f - u1);
+
+        Vec3 helper;
+
+        if (Math.abs(n.y) < 0.999f) {
+            helper = new Vec3(0.0f, 1.0f, 0.0f);
+        } else {
+            helper = new Vec3(1.0f, 0.0f, 0.0f);
+        }
+
+        Vec3 tangent = helper.cross(n).normalize();
+        Vec3 bitangent = n.cross(tangent).normalize();
+
+        return tangent.mul(localX)
+                .add(bitangent.mul(localY))
+                .add(n.mul(localZ))
+                .normalize();
+    }
+
+    private static Vec3 indirectBounce(
+            Ray incomingRay,
+            Hit hit,
+            Scene scene,
+            int depth
+    ) {
+        Material material =
+                hit.object.getMaterialAt(hit.position);
+
+        if (material == null || depth <= 1) {
+            return new Vec3(0.0f);
+        }
+
+        Vec3 normal = hit.normal.normalize();
+
+        if (normal.dot(incomingRay.direction) > 0.0f) {
+            normal = normal.mul(-1.0f);
+        }
+
+        Vec3 bounceDirection;
+
+        float r = random.nextFloat();
+
+        float diffuseProbability = (float) (1.0 - material.metallic - material.transparency);
+        diffuseProbability = Math.max(0.0f, diffuseProbability);
+
+        float reflectionProbability =
+                (float) material.metallic;
+
+        float refractionProbability =
+                (float) material.transparency;
+
+        float sum =
+                diffuseProbability + reflectionProbability + refractionProbability;
+
+        if (sum <= 0.0f) {
+            return new Vec3(0.0f);
+        }
+
+        diffuseProbability /= sum;
+        reflectionProbability /= sum;
+        refractionProbability /= sum;
+
+        if (r < refractionProbability) {
+
+            Vec3 outwardNormal = hit.normal.normalize();
+
+            boolean entering =
+                    incomingRay.direction.dot(outwardNormal) < 0.0f;
+
+            double n1;
+            double n2;
+
+            if (entering) {
+                normal = outwardNormal;
+                n1 = 1.0;
+                n2 = material.refractiveIndex;
+            } else {
+                normal = outwardNormal.mul(-1.0f);
+                n1 = material.refractiveIndex;
+                n2 = 1.0;
+            }
+
+            bounceDirection = refract(
+                    incomingRay.direction,
+                    normal,
+                    n1,
+                    n2
+            );
+
+            // Totalreflexion
+            if (bounceDirection == null) {
+                bounceDirection = reflect(
+                        incomingRay.direction,
+                        normal
+                );
+            }
+        } else if (r < refractionProbability + reflectionProbability) {
+            bounceDirection = reflect(
+                    incomingRay.direction,
+                    normal
+            );
+
+        } else {
+            bounceDirection = sampleHemisphere(normal);
+        }
+
+        Ray bounceRay = new Ray(
+                hit.position.add(
+                        bounceDirection.mul(0.001f)
+                ),
+                bounceDirection
+        );
+
+        Vec3 incomingLight = traceRay(
+                bounceRay,
+                scene,
+                depth - 1
+        );
+
+        return incomingLight.mul(material.albedo);
     }
 }

@@ -1,7 +1,6 @@
 package BennysRayTrayer;
 
 import BennysRayTrayer.core.*;
-import BennysRayTrayer.input.Input;
 import BennysRayTrayer.objects.*;
 import BennysRayTrayer.objects.Normal.HalfSpace;
 import BennysRayTrayer.objects.Normal.Quadric;
@@ -113,7 +112,6 @@ public class Main {
                         0.95,
                         0.05,
                         0.00,
-                        0.0,
                         1.0
                 )
         );
@@ -123,7 +121,6 @@ public class Main {
                 0.95,
                 0.05,
                 0.00,
-                0.0,
                 1.0
         )*/
 
@@ -132,7 +129,6 @@ public class Main {
                 0.7,
                 0.0,
                 0.05,
-                0.0,
                 1.0
         )*/
 
@@ -148,9 +144,17 @@ public class Main {
                 };
 
         Light[] lights = new Light[] {
-                new Light(new Vec3(-6, 8, 8), 2.2, Color.ofRGB(255, 245, 220)),
-                new Light(new Vec3(0, 8, -15), 1.2, Color.ofRGB(255, 250, 200)),  // ← NEUE SONNE
-                new Light(new Vec3(3, 5, 4), 0.6),
+                new Light(new Vec3(-6, 8, 8),
+                        2.2,
+                        Color.ofRGB(255, 245, 220),
+                        0.7,
+                        12),
+                new Light(new Vec3(0, 8, -15), 1.2, Color.ofRGB(255, 250, 200),0.7,0),
+                new Light(new Vec3(3, 5, 4),
+                        0.8,
+                        Color.white(),
+                        0.0,
+                        0),
                 new Light(new Vec3(-3, 3, 3), 0.4)
         };
 
@@ -162,7 +166,6 @@ public class Main {
         mis.newPixels();
 
         // === Input verbinden ===
-        Input.bind(frame, cam, scene, resX, resY, pixels, mis);
 
         frame.setFocusable(true);
         frame.requestFocus();
@@ -174,7 +177,6 @@ public class Main {
                 Color.ofRGB(212, 171, 62).toVec3(),
                 0.28,
                 0.95,
-                0.18,
                 0.0,
                 1.0
         );
@@ -183,7 +185,6 @@ public class Main {
                 Color.ofRGB(175, 180, 190).toVec3(),
                 0.28,
                 0.90,
-                0.10,
                 0.0,
                 1.0
         );
@@ -276,7 +277,6 @@ public class Main {
                 Color.ofRGB(212, 171, 62).toVec3(),
                 0.28,
                 0.95,
-                0.18,
                 0.0,
                 1.0
         );
@@ -360,7 +360,6 @@ public class Main {
                 Color.ofRGB(212, 171, 62).toVec3(),
                 0.28,
                 0.95,
-                0.18,
                 0.0,
                 1.0
         );
@@ -369,7 +368,6 @@ public class Main {
                 Color.ofRGB(175, 180, 190).toVec3(),
                 0.28,
                 0.90,
-                0.10,
                 0.0,
                 1.0
         );
@@ -379,7 +377,6 @@ public class Main {
                 0.08,
                 0.05,
                 0.05,
-                0.0,
                 1.0
         );
 
@@ -617,7 +614,6 @@ public class Main {
                 Color.ofRGB(212, 171, 62).toVec3(),
                 0.28,
                 0.95,
-                0.18,
                 0.0,
                 1.0
         );
@@ -626,7 +622,6 @@ public class Main {
                 Color.ofRGB(175, 180, 190).toVec3(),
                 0.28,
                 0.90,
-                0.10,
                 0.0,
                 1.0
         );
@@ -636,7 +631,6 @@ public class Main {
                 0.08,
                 0.05,
                 0.06,
-                0.0,
                 1.0
         );
 
@@ -738,16 +732,14 @@ public class Main {
                 Color.ofRGB(212, 171, 62).toVec3(),
                 0.28,
                 0.95,
-                0.18,
                 0.0,
                 1.0
         );
 
         Material darkMetal = new Material(
                 Color.ofRGB(42, 45, 48).toVec3(),
-                0.48,   // eher rau
-                0.65,   // metallisch
-                0.08,
+                0.48,
+                0.65,
                 0.0,
                 1.0
         );
@@ -757,7 +749,6 @@ public class Main {
                 0.08,
                 0.2,
                 0.15,
-                0.0,
                 1.0
         );
 
@@ -851,7 +842,6 @@ public class Main {
                 0.08,
                 0.2,
                 0.15,
-                0.0,
                 1.0
         );
 

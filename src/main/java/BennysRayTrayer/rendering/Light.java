@@ -5,20 +5,31 @@ import BennysRayTrayer.objects.Color;
 
 public class Light {
 
-    Vec3 position;
-    double intensity;
-    Color color;
+    private final Vec3 position;
+    private final double intensity;
+    private final Color color;
 
-    public Light(Vec3 position, double intensity, Color color) {
+    private final double radius;
+    private final int shadowSamples;
+
+    public Light(Vec3 position, double intensity, Color color, double radius, int shadowSamples) {
         this.position = position;
         this.intensity = intensity;
         this.color = color;
+        this.radius = radius;
+        this.shadowSamples = shadowSamples;
+    }
+
+    public Light(Vec3 position, double intensity, Color color) {
+        this(position, intensity, color, 0.0, 0);
+    }
+
+    public Light(Vec3 position, double intensity, double radius, int shadowSamples) {
+        this(position, intensity, Color.white(), radius, shadowSamples);
     }
 
     public Light(Vec3 position, double intensity) {
-        this.position = position;
-        this.intensity = intensity;
-        this.color = Color.white(); // weiß als Standard
+        this(position, intensity, Color.white(), 0.0, 0);
     }
 
     public Vec3 getPosition() {
@@ -30,10 +41,17 @@ public class Light {
     public Color getColor() {
         return color;
     }
-
-    // Backwards-compatible accessor
-    public Vec3 getColorVec3() {
-        return color == null ? null : color.toVec3();
+    public double getRadius() {
+        return radius;
+    }
+    public int getShadowSamples() {
+        return shadowSamples;
+    }
+    public boolean castsShadow() {
+        return shadowSamples > 0;
+    }
+    public boolean isAreaLight() {
+        return radius > 0.0;
     }
 
 }

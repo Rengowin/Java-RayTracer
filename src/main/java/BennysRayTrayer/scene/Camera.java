@@ -64,10 +64,16 @@ public class Camera {
         rotatePitch(degrees * dir);
     }
 
-    public Ray generateRay(int x, int y, int width, int height) {
+    public Ray generateRay(float x, float y, int width, int height) {
         double aspectRatio = (double) width / height;
-        double px = (2 * ((x + 0.5) / width) - 1) * Math.tan(Math.toRadians(fov / 2)) * aspectRatio;
-        double py = (1 - 2 * ((y + 0.5) / height)) * Math.tan(Math.toRadians(fov / 2));
+        double px =
+                (2 * (x / width) - 1)
+                        * Math.tan(Math.toRadians(fov / 2))
+                        * aspectRatio;
+
+        double py =
+                (1 - 2 * (y / height))
+                        * Math.tan(Math.toRadians(fov / 2));
 
         Vec3 forward = lookDirection.normalize();
         Vec3 worldUp = new Vec3(0, 1, 0);

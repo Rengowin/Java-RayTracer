@@ -2,105 +2,143 @@ package BennysRayTrayer.rendering;
 
 import BennysRayTrayer.core.Vec3;
 
-public class CookTorrance {
+public final class CookTorrance {
+
+    private static final float MIN_ROUGHNESS = 0.04f;
+    private static final float EPSILON = 1e-6f;
+
+    private CookTorrance() {
+        // Utility-Klasse
+    }
 
     public static Vec3 shade(
-            Vec3 albedo,
-            double roughness,
-            double metallic,
-            Vec3 N,
-            Vec3 V,
-            Vec3 L,
+            Material material,
+            Vec3 normal,
+            Vec3 viewDirection,
+            Vec3 lightDirection,
             Vec3 lightColor,
             double lightIntensity
     ) {
-        float r = clamp01((float) roughness);
-        float m = clamp01((float) metallic);
+        Vec3 N = normal.normalize();
+        Vec3 V = viewDirection.normalize();
+        Vec3 L = lightDirection.normalize();
 
-        // Verhindert extreme Spitzen bei roughness = 0
-        r = Math.max(r, 0.04f);
+        float nDotL = saturate(N.dot(L));
+        float nDotV = saturate(N.dot(V));
 
-        N = N.normalize();
-        V = V.normalize();
-        L = L.normalize();
-
-        float NdotL = Math.max(0.0f, N.dot(L));
-        float NdotV = Math.max(0.0f, N.dot(V));
-
-        if (NdotL <= 0.0f || NdotV <= 0.0f) {
-            return new Vec3(0, 0, 0);
+        if (nDotL <= 0.0f || nDotV <= 0.0f) {
+            return new Vec3(0.0f);
         }
 
-        Vec3 H = V.add(L).normalize();
+        Vec3 halfVector = V.add(L);
 
-        float NdotH = Math.max(0.0f, N.dot(H));
+        // V und L können exakt entgegengesetzt sein.
+        if (halfVector.length() <= EPSILON) {
+            return new Vec3(0.0f);
+        }
 
-        // D: GGX
-        double r2 = r * r;
+        Vec3 H = halfVector.normalize();
 
-        double denominator =
-                Math.PI
-                        * Math.pow(
-                        NdotH * NdotH * (r2 - 1.0) + 1.0,
-                        2.0
-                );
+        float nDotH = saturate(N.dot(H));
 
-        double D = r2 / Math.max(denominator, 1e-6);
-
-        // F: Fresnel-Schlick + Metall-Trick
-        Vec3 dielectricF0 = new Vec3(0.04f);
-        Vec3 F0 = lerp(dielectricF0, albedo, m);
-        Vec3 F = fresnelSchlick(NdotV, F0);
-
-        // G: Schlick-GGX nach Vorlesungsvariante
-        float k = r / 2.0f;
-
-        float gV = NdotV /
-                Math.max(NdotV * (1.0f - k) + k, 1e-6f);
-
-        float gL = NdotL /
-                Math.max(NdotL * (1.0f - k) + k, 1e-6f);
-
-        float G = gV * gL;
-
-        // ks = D * F * G
-        Vec3 ks = F.mul((float) (D * G));
-        ks = clampVec01(ks);
-
-        // kd = (1 - ks) * (1 - metallic)
-        Vec3 kd = new Vec3(
-                (1.0f - ks.x) * (1.0f - m),
-                (1.0f - ks.y) * (1.0f - m),
-                (1.0f - ks.z) * (1.0f - m)
+        float roughness = Math.max(
+                MIN_ROUGHNESS,
+                saturate((float) material.roughness)
         );
 
-        Vec3 diffuse = hadamard(kd, albedo);
+        float metallic = saturate((float) material.metallic);
 
-        Vec3 brdf = diffuse.add(ks);
-
-        Vec3 radiance = lightColor.mul((float) lightIntensity);
-
-        return hadamard(brdf, radiance).mul(NdotL);
-    }
-
-    private static Vec3 fresnelSchlick(float cosTheta, Vec3 F0) {
-        float value = (float) Math.pow(
-                Math.max(0.0f, 1.0f - cosTheta),
-                5.0
+        float distribution = distributionGGX(
+                nDotH,
+                roughness
         );
 
-        return F0.add(
-                new Vec3(1, 1, 1)
-                        .sub(F0)
-                        .mul(value)
+        float geometry = geometrySmith(
+                nDotV,
+                nDotL,
+                roughness
         );
+
+        Vec3 f0 = Fresnel.baseReflectance(material);
+        Vec3 fresnel = Fresnel.schlick(nDotV, f0);
+
+        Vec3 specular = fresnel.mul(
+                distribution * geometry
+        );
+
+        Vec3 reflectedFraction = clamp01(specular);
+
+        Vec3 diffuseFraction = new Vec3(1.0f)
+                .sub(reflectedFraction)
+                .mul(1.0f - metallic);
+
+        Vec3 diffuse = multiply(
+                diffuseFraction,
+                material.albedo
+        );
+
+        Vec3 brdf = diffuse.add(specular);
+
+        Vec3 radiance = lightColor.mul(
+                (float) lightIntensity
+        );
+
+        return multiply(brdf, radiance)
+                .mul(nDotL);
     }
 
-    private static Vec3 lerp(Vec3 a, Vec3 b, float t) {
-        return a.mul(1.0f - t).add(b.mul(t));
+    private static float distributionGGX(
+            float nDotH,
+            float roughness
+    ) {
+        float roughnessSquared = roughness * roughness;
+
+        float denominatorPart =
+                nDotH * nDotH
+                        * (roughnessSquared - 1.0f)
+                        + 1.0f;
+
+        float denominator =
+                (float) Math.PI
+                        * denominatorPart
+                        * denominatorPart;
+
+        return roughnessSquared
+                / Math.max(denominator, EPSILON);
     }
 
-    private static Vec3 hadamard(Vec3 a, Vec3 b) {
+    private static float geometrySmith(
+            float nDotV,
+            float nDotL,
+            float roughness
+    ) {
+        float geometryView = geometrySchlickGGX(
+                nDotV,
+                roughness
+        );
+
+        float geometryLight = geometrySchlickGGX(
+                nDotL,
+                roughness
+        );
+
+        return geometryView * geometryLight;
+    }
+
+    private static float geometrySchlickGGX(
+            float nDotDirection,
+            float roughness
+    ) {
+        float k = roughness / 2.0f;
+
+        float denominator =
+                nDotDirection * (1.0f - k) + k;
+
+        return nDotDirection
+                / Math.max(denominator, EPSILON);
+    }
+
+    private static Vec3 multiply(Vec3 a, Vec3 b) {
         return new Vec3(
                 a.x * b.x,
                 a.y * b.y,
@@ -108,15 +146,15 @@ public class CookTorrance {
         );
     }
 
-    private static float clamp01(float value) {
-        return Math.max(0.0f, Math.min(1.0f, value));
+    private static Vec3 clamp01(Vec3 value) {
+        return new Vec3(
+                saturate(value.x),
+                saturate(value.y),
+                saturate(value.z)
+        );
     }
 
-    private static Vec3 clampVec01(Vec3 value) {
-        return new Vec3(
-                clamp01(value.x),
-                clamp01(value.y),
-                clamp01(value.z)
-        );
+    private static float saturate(float value) {
+        return Math.max(0.0f, Math.min(1.0f, value));
     }
 }
