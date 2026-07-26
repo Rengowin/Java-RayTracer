@@ -4,48 +4,50 @@ import BennysRayTrayer.CSGMaterialBlendMode;
 import BennysRayTrayer.core.HitInterval;
 import BennysRayTrayer.core.Ray;
 import BennysRayTrayer.core.Vec3;
-import BennysRayTrayer.objects.Color;
-import BennysRayTrayer.objects.Object3D;
-import BennysRayTrayer.rendering.Material;
+import BennysRayTrayer.objects.Normal.AnalyticObject;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class Union extends Object3D {
-    Object3D a;
-    Object3D b;
-    CSGMaterialBlendMode blendMode;
+public class Union extends NormalCSG {
 
-    public Union(Object3D a, Object3D b, CSGMaterialBlendMode blendMode) {
-        this.a = a;
-        this.b = b;
-        this.blendMode = blendMode;
-
-        apply();
+    public Union(
+            AnalyticObject a,
+            AnalyticObject b,
+            CSGMaterialBlendMode blendMode
+    ) {
+        super(a, b, blendMode);
     }
 
-    public Union(Object3D a, Object3D b) {
-        this(a, b, CSGMaterialBlendMode.USE_A);
+    public Union(
+            AnalyticObject a,
+            AnalyticObject b
+    ) {
+        super(a, b);
     }
 
     @Override
-    public List<HitInterval> intersectIntervals(Ray ray) {
-        final double EPS = 1e-6;
+    protected double intersectLocalDistance(Ray localRay, double maxDistance) {
+        return Math.min(
+                a.intersectDistance(localRay, maxDistance),
+                b.intersectDistance(localRay, maxDistance)
+        );
+    }
 
-        Vec3 s = this.getTransform().getScale();
+    @Override
+    public List<HitInterval> intersectLocalIntervals(
+            Ray localRay
+    ) {
 
-        Vec3 localOrigin = toLocalPoint(ray.origin);
-        Vec3 localDir = toLocalDirection(ray.direction);
+        List<HitInterval> intervalsA =
+                a.intersectIntervals(localRay);
 
-        Ray  localRay    = new Ray(localOrigin, localDir);
-
-        List<HitInterval> intervalsA = a.intersectIntervals(localRay);
-        List<HitInterval> intervalsB = b.intersectIntervals(localRay);
+        List<HitInterval> intervalsB =
+                b.intersectIntervals(localRay);
 
         List<HitInterval> result = new ArrayList<>();
 
-        // Alle Intervalle sammeln und transformieren
         if (intervalsA != null) {
             for (HitInterval interval : intervalsA) {
                 Vec3 worldNormalEnter = toWorldDirection(interval.normalEnter).normalize();
@@ -64,56 +66,8 @@ public class Union extends Object3D {
             }
         }
 
-        // Sortiere Intervalle nach tEnter
         Collections.sort(result, (i1, i2) -> Double.compare(i1.tEnter, i2.tEnter));
 
         return result;
-    }
-
-    private void apply() {
-        switch (blendMode) {
-            case USE_A -> {
-                if (a.getMaterial() != null) {
-                    setMaterial(a.getMaterial());
-                }
-                if (a.getColor() != null) {
-                    setColor(a.getColor());
-                }
-            }
-            case USE_B -> {
-                if (b.getMaterial() != null) {
-                    setMaterial(b.getMaterial());
-                }
-                if (b.getColor() != null) {
-                    setColor(b.getColor());
-                }
-            }
-            case BLEND -> {
-                if (a.getMaterial() != null && b.getMaterial() != null) {
-                    setMaterial(Material.blend(a.getMaterial(), b.getMaterial(), 0.5));
-                } else if (a.getMaterial() != null) {
-                    setMaterial(a.getMaterial());
-                } else if (b.getMaterial() != null) {
-                    setMaterial(b.getMaterial());
-                }
-
-                if (a.getColor() != null && b.getColor() != null) {
-                    setColor(Color.blendColors(a.getColor().toVec3(), b.getColor().toVec3(), 0.5));
-                } else if (a.getColor() != null) {
-                    setColor(a.getColor());
-                } else if (b.getColor() != null) {
-                    setColor(b.getColor());
-                }
-            }
-            default -> {
-                // Default to USE_A if blendMode is not recognized
-                if (a.getMaterial() != null) {
-                    setMaterial(a.getMaterial());
-                }
-                if (a.getColor() != null) {
-                    setColor(a.getColor());
-                }
-            }
-        }
     }
 }

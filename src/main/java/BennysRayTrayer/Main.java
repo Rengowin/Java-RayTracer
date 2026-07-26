@@ -2,6 +2,7 @@ package BennysRayTrayer;
 
 import BennysRayTrayer.core.*;
 import BennysRayTrayer.objects.*;
+import BennysRayTrayer.objects.Normal.AnalyticObject;
 import BennysRayTrayer.objects.Normal.HalfSpace;
 import BennysRayTrayer.objects.Normal.Quadric;
 import BennysRayTrayer.objects.Normal.csg.Cut;
@@ -171,7 +172,7 @@ public class Main {
         frame.requestFocus();
     }
 
-    private static Object3D createCanonicalLargePetal() {
+    private static AnalyticObject createCanonicalLargePetal() {
 
         Material gold = new Material(
                 Color.ofRGB(212, 171, 62).toVec3(),
@@ -189,27 +190,26 @@ public class Main {
                 1.0
         );
 
-        Object3D petal = Quadric.paraboloidY(Color.gray());
+        AnalyticObject petal = Quadric.paraboloidY();
         petal.setMaterial(gold);
 
         petal = new Cut(
                 new Cut(
                         petal,
-                        HalfSpace.yLess(0.0f, Color.gray())
+                        HalfSpace.yLess(0.0f)
                 ),
-                HalfSpace.yGreater(-1.2f, Color.gray())
+                HalfSpace.yGreater(-1.2f)
         );
 
         // Breite entlang Z begrenzen
         float halfWidth = 0.5f;
         petal = clampZ(
                 petal,
-                halfWidth,
-                Color.gray()
+                halfWidth
         );
 
         // Runde Aussparung an der Innenseite des Petals
-        Object3D innerCut = Quadric.cylinderZ(Color.gray());
+        AnalyticObject innerCut = Quadric.cylinderZ();
 
         innerCut.setScale(new Vec3(
                 0.75f,
@@ -231,10 +231,10 @@ public class Main {
 
         petal = new Cut(
                 petal,
-                HalfSpace.xGreater(-0.75f, Color.gray())
+                HalfSpace.xGreater(-0.75f)
         );
 
-        Object3D silverBase = Quadric.paraboloidY(Color.white());
+        AnalyticObject silverBase = Quadric.paraboloidY();
         silverBase.setMaterial(silver);
 
         silverBase.setScale(new Vec3(
@@ -246,21 +246,19 @@ public class Main {
         silverBase = new Cut(
                 new Cut(
                         silverBase,
-                        HalfSpace.yLess(-1.2f, Color.gray())
+                        HalfSpace.yLess(-1.2f)
                 ),
-                HalfSpace.yGreater(-1.3f, Color.gray())
+                HalfSpace.yGreater(-1.3f)
         );
 
         silverBase = clampZ(
                 silverBase,
-                halfWidth+0.1f,
-                Color.gray()
+                halfWidth+0.1f
         );
 
         silverBase = clampX(
                 silverBase,
-                1.2f,
-                Color.gray()
+                1.2f
         );
 
 
@@ -928,17 +926,17 @@ public class Main {
         return blueShape;
     }
 
-    private static Object3D clampX(Object3D object, float halfWidth, Color color) {
+    private static AnalyticObject clampX(AnalyticObject object, float halfWidth) {
         return new Cut(
-                new Cut(object, HalfSpace.xGreater(-halfWidth, color)),
-                HalfSpace.xLess(halfWidth, color)
+                new Cut(object, HalfSpace.xGreater(-halfWidth)),
+                HalfSpace.xLess(halfWidth)
         );
     }
 
-    private static Object3D clampZ(Object3D object, float halfWidth, Color color) {
+    private static AnalyticObject clampZ(AnalyticObject object, float halfWidth) {
         return new Cut(
-                new Cut(object, HalfSpace.zGreater(-halfWidth, color)),
-                HalfSpace.zLess(halfWidth, color)
+                new Cut(object, HalfSpace.zGreater(-halfWidth)),
+                HalfSpace.zLess(halfWidth)
         );
     }
 
@@ -958,20 +956,20 @@ public class Main {
         );
     }
 
-    public static HalfSpace slopeLeft(float slope, float distance, Color color) {
-        return HalfSpace.withNormal(new Vec3(1, slope, 0), distance, color);
+    public static HalfSpace slopeLeft(float slope, float distance) {
+        return HalfSpace.withNormal(new Vec3(1, slope, 0), distance);
     }
 
-    public static HalfSpace slopeRight(float slope, float distance, Color color) {
-        return HalfSpace.withNormal(new Vec3(-1, slope, 0), distance, color);
+    public static HalfSpace slopeRight(float slope, float distance) {
+        return HalfSpace.withNormal(new Vec3(-1, slope, 0), distance);
     }
 
-    public static HalfSpace slopeFront(float slope, float distance, Color color) {
-        return HalfSpace.withNormal(new Vec3(0, slope, 1), distance, color);
+    public static HalfSpace slopeFront(float slope, float distance) {
+        return HalfSpace.withNormal(new Vec3(0, slope, 1), distance);
     }
 
-    public static HalfSpace slopeBack(float slope, float distance, Color color) {
-        return HalfSpace.withNormal(new Vec3(0, slope, -1), distance, color);
+    public static HalfSpace slopeBack(float slope, float distance) {
+        return HalfSpace.withNormal(new Vec3(0, slope, -1), distance);
     }
 
     private static Vec3 positionOnRing(float angleDeg, float distance, float y) {

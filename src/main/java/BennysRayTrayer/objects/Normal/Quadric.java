@@ -1,6 +1,7 @@
 package BennysRayTrayer.objects.Normal;
 
 import BennysRayTrayer.core.HitInterval;
+import BennysRayTrayer.core.HitRange;
 import BennysRayTrayer.core.Ray;
 import BennysRayTrayer.core.Vec3;
 import BennysRayTrayer.objects.Color;
@@ -11,11 +12,10 @@ import java.util.List;
 
 // wurde auch per ai fertiggestellt (Das intersectIntervals)
 
-public class Quadric extends Object3D {
+public class Quadric extends AnalyticObject {
     double a, b, c, d, e, f, g, h, i, j;
 
-    public Quadric(double a, double b, double c, double d, double e, double f, double g, double h, double i, double j, Color color) {
-        super(color);
+    public Quadric(double a, double b, double c, double d, double e, double f, double g, double h, double i, double j) {
         this.a = a;
         this.b = b;
         this.c = c;
@@ -29,169 +29,152 @@ public class Quadric extends Object3D {
         this.setPosition(new Vec3(0f, 0f, 0f));
     }
 
-    public static Quadric QuadricWithFormel(double a, double b, double c, double d, double e, double f, double g, double h, double i, double j, Color color) {
+    public static Quadric QuadricWithFormel(double a, double b, double c, double d, double e, double f, double g, double h, double i, double j) {
         return new Quadric(
-                a, b, c, d, e, f, g, h, i, j,
-                color
+                a, b, c, d, e, f, g, h, i, j
         );
     }
 
-    public static Quadric custom(double a, double b, double c, double d, double e, double f, double g, double h, double i, double j, Color color) {
-        return QuadricWithFormel(a,b,c,d,e,f,g,h,i,j, color);
+    public static Quadric custom(double a, double b, double c, double d, double e, double f, double g, double h, double i, double j) {
+        return QuadricWithFormel(a,b,c,d,e,f,g,h,i,j);
     }
 
-    public static Quadric sphere(Color color) {
-        return new Quadric(
-                1, 1, 1,
-                0, 0, 0,
-                0, 0, 0,
-                -1,
-                color
-        );
-    }
-
-    public static Quadric cube(Color color) {
+    public static Quadric sphere() {
         return new Quadric(
                 1, 1, 1,
                 0, 0, 0,
                 0, 0, 0,
-                -1,
-                color
+                -1
         );
     }
 
-    public static Quadric ellipsoide(Color color) {
-        return sphere(color);
+    public static Quadric cube() {
+        return new Quadric(
+                1, 1, 1,
+                0, 0, 0,
+                0, 0, 0,
+                -1
+        );
     }
 
-    public static Quadric cylinderY(Color color) {
+    public static Quadric ellipsoide() {
+        return sphere();
+    }
+
+    public static Quadric cylinderY() {
         return new Quadric(
                 1, 0, 1,
                 0, 0, 0,
                 0, 0, 0,
-                -1,
-                color
+                -1
         );
     }
 
-    public static Quadric cylinderX(Color color) {
+    public static Quadric cylinderX() {
         return new Quadric(
                 0, 1, 1,
                 0, 0, 0,
                 0, 0, 0,
-                -1,
-                color
+                -1
         );
     }
 
-    public static Quadric cylinderZ(Color color) {
+    public static Quadric cylinderZ() {
         return new Quadric(
                 1, 1, 0,
                 0, 0, 0,
                 0, 0, 0,
-                -1,
-                color
+                -1
         );
     }
 
-    public static Quadric coneY(Color color) {
+    public static Quadric coneY() {
         return new Quadric(
                 1, -1, 1,
                 0, 0, 0,
                 0, 0, 0,
-                0,
-                color
+                0
         );
     }
 
-    public static Quadric paraboloidY(Color color) {
+    public static Quadric paraboloidY() {
         return new Quadric(
                 1, 0, 1,
                 0, 0, 0,
                 0, 1, 0,
-                0,
-                color
+                0
         );
     }
 
-    public static Quadric paraboloidX(Color color) {
+    public static Quadric paraboloidX() {
         return new Quadric(
                 0, 1, 1,
                 0, 0, 0,
                 1, 0, 0,
-                0,
-                color
+                0
         );
     }
 
-    public static Quadric paraboloidZ(Color color) {
+    public static Quadric paraboloidZ() {
         return new Quadric(
                 1, 1, 0,
                 0, 0, 0,
                 0, 0, 1,
-                0,
-                color
+                0
         );
     }
 
-    // Hyperboloid: x² + z² - y² - 1 = 0
     public static Quadric hyperboloidY(Color color) {
         return new Quadric(
                 1, -1, 1,
                 0, 0, 0,
                 0, 0, 0,
-                -1,
-                color
+                -1
         );
     }
 
-    public static Quadric hyperboloidX(Color color) {
+    public static Quadric hyperboloidX() {
         return new Quadric(
                 0, 1, 1,
                 0, 0, 0,
                 0, 0, 0,
-                -1,
-                color
+                -1
         );
     }
 
-    public static Quadric hyperboloidZ(Color color) {
+    public static Quadric hyperboloidZ() {
         return new Quadric(
                 1, 1, 0,
                 0, 0, 0,
                 0, 0, 0,
-                -1,
-                color
+                -1
         );
     }
 
-    public static Quadric planeX(Color color) {
+    public static Quadric planeX() {
         return new Quadric(
                 0, 0, 0,
                 0, 0, 0,
                 -1, 0, 0,
-                0,
-                color
+                0
         );
     }
 
-    public static Quadric planeY(Color color){
+    public static Quadric planeY(){
         return new Quadric(
                 0, 0, 0,
                 0, 0, 0,
                 0, -1, 0,
-                0,
-                color
+                0
         );
     }
 
-    public static Quadric planeZ(Color color) {
+    public static Quadric planeZ() {
         return new Quadric(
                 0, 0, 0,
                 0, 0, 0,
                 0, 0, -1,
-                0,
-                color
+                0
         );
     }
 
@@ -233,7 +216,6 @@ public class Quadric extends Object3D {
         List<HitInterval> intervals = new ArrayList<>();
 
         if (Math.abs(A) < EPS) {
-            // Lineare Gleichung: nur ein Hit
             if (Math.abs(B) < EPS) {
                 return intervals;
             }
@@ -262,11 +244,9 @@ public class Quadric extends Object3D {
                     (float) (gradZ / s.z)
             )).normalize();
 
-            // Degeneriertes Intervall (nur ein punkt)
             intervals.add(new HitInterval(t, t, normal, normal, this));
             return intervals;
         } else {
-            // Quadratische Gleichung: zwei Hits
             double discriminant = B * B - 4.0 * A * C;
             if (discriminant < 0.0) {
                 return intervals;
@@ -276,21 +256,13 @@ public class Quadric extends Object3D {
             double t1 = (-B - sqrtD) / (2.0 * A);
             double t2 = (-B + sqrtD) / (2.0 * A);
 
-            // Beide Lösungen müssen positiv sein
             if (t1 < EPS && t2 < EPS) {
                 return intervals;
             }
 
-            // Falls nur t1 positiv ist
-            //TODO: beide sotiert zuruck geben weil sonnst wenn in der kammera dahinter mäßig
-            /*if (t1 < EPS) {
-                t1 = t2;
-            }*/
-
             double tEnter = Math.min(t1, t2);
             double tExit = Math.max(t1, t2);
 
-            // Normalen für beide Punkte berechnen
             double lx_enter = ox + tEnter * dx;
             double ly_enter = oy + tEnter * dy;
             double lz_enter = oz + tEnter * dz;
@@ -334,6 +306,119 @@ public class Quadric extends Object3D {
             intervals.add(new HitInterval(tEnter, tExit, normalEnter, normalExit, this));
             return intervals;
         }
+    }
+
+    @Override
+    public HitRange intersectRange(
+            Ray ray,
+            double maxDistance
+    ) {
+        Vec3 scale = getTransform().getScale();
+
+        if (Math.abs(scale.x) < EPS
+                || Math.abs(scale.y) < EPS
+                || Math.abs(scale.z) < EPS) {
+            return null;
+        }
+
+        Vec3 localOrigin =
+                toLocalPoint(ray.origin);
+
+        Vec3 localDirection =
+                toLocalDirection(ray.direction);
+
+        double ox = localOrigin.x;
+        double oy = localOrigin.y;
+        double oz = localOrigin.z;
+
+        double dx = localDirection.x;
+        double dy = localDirection.y;
+        double dz = localDirection.z;
+
+        double equationA =
+                a * dx * dx
+                        + b * dy * dy
+                        + c * dz * dz
+                        + d * dx * dy
+                        + e * dx * dz
+                        + f * dy * dz;
+
+        double equationB =
+                2.0 * a * ox * dx
+                        + 2.0 * b * oy * dy
+                        + 2.0 * c * oz * dz
+                        + d * (ox * dy + oy * dx)
+                        + e * (ox * dz + oz * dx)
+                        + f * (oy * dz + oz * dy)
+                        + g * dx
+                        + h * dy
+                        + i * dz;
+
+        double equationC =
+                a * ox * ox
+                        + b * oy * oy
+                        + c * oz * oz
+                        + d * ox * oy
+                        + e * ox * oz
+                        + f * oy * oz
+                        + g * ox
+                        + h * oy
+                        + i * oz
+                        + j;
+
+        // Lineare Gleichung, z. B. Ebene
+        if (Math.abs(equationA) < EPS) {
+            if (Math.abs(equationB) < EPS) {
+                return null;
+            }
+
+            double t =
+                    -equationC / equationB;
+
+            if (t <= EPS || t >= maxDistance) {
+                return null;
+            }
+
+            return new HitRange(
+                    t,
+                    t
+            );
+        }
+
+        double discriminant =
+                equationB * equationB
+                        - 4.0 * equationA * equationC;
+
+        if (discriminant < 0.0) {
+            return null;
+        }
+
+        double sqrtDiscriminant =
+                Math.sqrt(discriminant);
+
+        double t1 =
+                (-equationB - sqrtDiscriminant)
+                        / (2.0 * equationA);
+
+        double t2 =
+                (-equationB + sqrtDiscriminant)
+                        / (2.0 * equationA);
+
+        double tEnter = Math.min(t1, t2);
+        double tExit = Math.max(t1, t2);
+
+        if (tExit <= EPS) {
+            return null;
+        }
+
+        if (tEnter >= maxDistance) {
+            return null;
+        }
+
+        return new HitRange(
+                tEnter,
+                Math.min(tExit, maxDistance)
+        );
     }
 
 }

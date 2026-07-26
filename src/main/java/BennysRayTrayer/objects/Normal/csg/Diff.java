@@ -2,46 +2,127 @@ package BennysRayTrayer.objects.Normal.csg;
 
 import BennysRayTrayer.CSGMaterialBlendMode;
 import BennysRayTrayer.core.HitInterval;
+import BennysRayTrayer.core.HitRange;
 import BennysRayTrayer.core.Ray;
 import BennysRayTrayer.core.Vec3;
-import BennysRayTrayer.objects.Color;
-import BennysRayTrayer.objects.Object3D;
-import BennysRayTrayer.rendering.Material;
+import BennysRayTrayer.objects.Normal.AnalyticObject;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class Diff extends Object3D {
-    Object3D a;
-    Object3D b;
-    CSGMaterialBlendMode blendMode;
+public class Diff extends NormalCSG {
 
-    public Diff(Object3D a, Object3D b, CSGMaterialBlendMode blendMode) {
-        this.a = a;
-        this.b = b;
-        this.blendMode = blendMode;
-        apply();
+    public Diff(AnalyticObject a, AnalyticObject b, CSGMaterialBlendMode blendMode) {
+        super(a, b, blendMode);
     }
 
-    public Diff(Object3D a, Object3D b) {
+    public Diff(AnalyticObject a, AnalyticObject b) {
         this(a, b, CSGMaterialBlendMode.USE_A);
     }
 
+    @Override
+    protected double intersectLocalDistance(
+            Ray localRay,
+            double maxDistance
+    ) {
+        HitRange rangeA =
+                a.intersectRange(
+                        localRay,
+                        maxDistance
+                );
+
+        if (rangeA == null) {
+            return Double.POSITIVE_INFINITY;
+        }
+
+        HitRange rangeB =
+                b.intersectRange(
+                        localRay,
+                        maxDistance
+                );
+
+        // B wird gar nicht getroffen:
+        // A bleibt vollständig sichtbar
+        if (rangeB == null) {
+            return firstPositiveBoundary(
+                    rangeA,
+                    maxDistance
+            );
+        }
+
+        /*
+         * Fall 1:
+         * A beginnt vor B.
+         *
+         * A:  [----]
+         * B:     [--]
+         *
+         * Der erste sichtbare Punkt ist A-Eintritt.
+         */
+        if (rangeA.tEnter < rangeB.tEnter - EPS) {
+            if (rangeA.tEnter > EPS
+                    && rangeA.tEnter < maxDistance) {
+                return rangeA.tEnter;
+            }
+
+            /*
+             * Strahl startet schon in A, aber noch vor B.
+             * Dann ist die erste relevante Oberfläche der Eintritt in B.
+             */
+            if (rangeB.tEnter > EPS
+                    && rangeB.tEnter < rangeA.tExit
+                    && rangeB.tEnter < maxDistance) {
+                return rangeB.tEnter;
+            }
+        }
+
+        /*
+         * Fall 2:
+         * A beginnt innerhalb von B oder gleichzeitig.
+         *
+         * Sichtbar wird A erst nach dem Austritt aus B.
+         */
+        double visibleStart = Math.max(
+                rangeA.tEnter,
+                rangeB.tExit
+        );
+
+        if (visibleStart > EPS
+                && visibleStart < rangeA.tExit
+                && visibleStart < maxDistance) {
+            return visibleStart;
+        }
+
+        return Double.POSITIVE_INFINITY;
+    }
+
+    private double firstPositiveBoundary(
+            HitRange range,
+            double maxDistance
+    ) {
+        if (range.tEnter > EPS
+                && range.tEnter < maxDistance) {
+            return range.tEnter;
+        }
+
+        if (range.tExit > EPS
+                && range.tExit < maxDistance) {
+            return range.tExit;
+        }
+
+        return Double.POSITIVE_INFINITY;
+    }
 
     @Override
-    public List<HitInterval> intersectIntervals(Ray ray) {
-        final double EPS = 1e-6;
+    public List<HitInterval> intersectLocalIntervals(
+            Ray localRay
+    ) {
+        List<HitInterval> intervalsA =
+                a.intersectIntervals(localRay);
 
-        Vec3 s = this.getTransform().getScale();
-
-        Vec3 localOrigin = toLocalPoint(ray.origin);
-        Vec3 localDir = toLocalDirection(ray.direction);
-
-        Ray localRay = new Ray(localOrigin, localDir);
-
-        List<HitInterval> intervalsA = a.intersectIntervals(localRay);
-        List<HitInterval> intervalsB = b.intersectIntervals(localRay);
+        List<HitInterval> intervalsB =
+                b.intersectIntervals(localRay);
 
         List<HitInterval> result = new ArrayList<>();
 
@@ -49,7 +130,6 @@ public class Diff extends Object3D {
             return result;
         }
 
-        // A minus B: Teile von A, die NICHT in B liegen
         if (intervalsB == null || intervalsB.isEmpty()) {
             for (HitInterval ia : intervalsA) {
                 Vec3 worldNormalEnter = toWorldDirection(ia.normalEnter).normalize();
@@ -71,7 +151,6 @@ public class Diff extends Object3D {
                 double end = ia.tExit;
 
                 Vec3 startNormal = ia.normalEnter;
-                Object3D startObject = ia.objectEnter;
 
                 for (HitInterval ib : intervalsB) {
                     if (start >= end - EPS) break;
@@ -83,7 +162,6 @@ public class Diff extends Object3D {
                     double overlapStart = Math.max(start, ib.tEnter);
                     double overlapEnd = Math.min(end, ib.tExit);
 
-                    // Stück vor B bleibt sichtbar: endet an B-Eintritt -> B-Normale invertieren
                     if (start < overlapStart - EPS) {
                         Vec3 normalEnter = toWorldDirection(startNormal).normalize();
                         Vec3 normalExit = toWorldDirection(ib.normalEnter.mul(-1)).normalize();
@@ -99,13 +177,10 @@ public class Diff extends Object3D {
                         result.add(hi);
                     }
 
-                    // Nach B beginnt sichtbar wieder an B-Austritt -> B-Normale invertieren
                     start = overlapEnd;
                     startNormal = ib.normalExit.mul(-1);
-                    startObject = ib.objectExit;
                 }
 
-                // Rest nach allen B-Intervallen: beginnt evtl. an B-Austritt, endet an A-Austritt
                 if (start < end - EPS) {
                     Vec3 normalEnter = toWorldDirection(startNormal).normalize();
                     Vec3 normalExit = toWorldDirection(ia.normalExit).normalize();
@@ -125,52 +200,5 @@ public class Diff extends Object3D {
 
         Collections.sort(result, (i1, i2) -> Double.compare(i1.tEnter, i2.tEnter));
         return result;
-    }
-
-    private void apply() {
-        switch (blendMode) {
-            case USE_A -> {
-                if (a.getMaterial() != null) {
-                    setMaterial(a.getMaterial());
-                }
-                if (a.getColor() != null) {
-                    setColor(a.getColor());
-                }
-            }
-            case USE_B -> {
-                if (b.getMaterial() != null) {
-                    setMaterial(b.getMaterial());
-                }
-                if (b.getColor() != null) {
-                    setColor(b.getColor());
-                }
-            }
-            case BLEND -> {
-                if (a.getMaterial() != null && b.getMaterial() != null) {
-                    setMaterial(Material.blend(a.getMaterial(), b.getMaterial(), 0.5));
-                } else if (a.getMaterial() != null) {
-                    setMaterial(a.getMaterial());
-                } else if (b.getMaterial() != null) {
-                    setMaterial(b.getMaterial());
-                }
-
-                if (a.getColor() != null && b.getColor() != null) {
-                    setColor(Color.blendColors(a.getColor().toVec3(), b.getColor().toVec3(), 0.5));
-                } else if (a.getColor() != null) {
-                    setColor(a.getColor());
-                } else if (b.getColor() != null) {
-                    setColor(b.getColor());
-                }
-            }
-            default -> {
-                // Default to USE_A if blendMode is not recognized
-                if (a.getMaterial() != null) {
-                    setMaterial(a.getMaterial());
-                }
-                if (a.getColor() != null) {
-                    setColor(a.getColor());
-                }
-            }
-        }
     }
 }

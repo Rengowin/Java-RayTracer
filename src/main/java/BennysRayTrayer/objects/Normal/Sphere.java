@@ -1,6 +1,7 @@
 package BennysRayTrayer.objects.Normal;
 
 import BennysRayTrayer.core.HitInterval;
+import BennysRayTrayer.core.HitRange;
 import BennysRayTrayer.core.Ray;
 import BennysRayTrayer.core.Vec3;
 import BennysRayTrayer.objects.Color;
@@ -9,12 +10,11 @@ import BennysRayTrayer.objects.Object3D;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Sphere extends Object3D {
+public class Sphere extends AnalyticObject {
 
     double radius;
 
-    public Sphere(Vec3 center, double radius, Color color) {
-        super(color);
+    public Sphere(Vec3 center, double radius) {
         this.setPosition(center);
         this.radius = radius;
     }
@@ -113,6 +113,77 @@ public class Sphere extends Object3D {
         List<HitInterval> intervals = new ArrayList<>();
         intervals.add(new HitInterval(tEnter, tExit, normalEnter, normalExit, this));
         return intervals;
+    }
+
+    @Override
+    public HitRange intersectRange(
+            Ray ray,
+            double maxDistance
+    ) {
+        final double EPS = 1e-6;
+
+        Vec3 localOrigin = toLocalPoint(ray.origin);
+        Vec3 localDirection = toLocalDirection(ray.direction);
+
+        double ox = localOrigin.x;
+        double oy = localOrigin.y;
+        double oz = localOrigin.z;
+
+        double dx = localDirection.x;
+        double dy = localDirection.y;
+        double dz = localDirection.z;
+
+        double a =
+                dx * dx
+                        + dy * dy
+                        + dz * dz;
+
+        double b =
+                2.0 * (
+                        ox * dx
+                                + oy * dy
+                                + oz * dz
+                );
+
+        double c =
+                ox * ox
+                        + oy * oy
+                        + oz * oz
+                        - radius * radius;
+
+        double discriminant =
+                b * b - 4.0 * a * c;
+
+        if (discriminant < 0.0) {
+            return null;
+        }
+
+        double sqrtDiscriminant =
+                Math.sqrt(discriminant);
+
+        double t1 =
+                (-b - sqrtDiscriminant)
+                        / (2.0 * a);
+
+        double t2 =
+                (-b + sqrtDiscriminant)
+                        / (2.0 * a);
+
+        double tEnter = Math.min(t1, t2);
+        double tExit = Math.max(t1, t2);
+
+        if (tExit <= EPS) {
+            return null;
+        }
+
+        if (tEnter >= maxDistance) {
+            return null;
+        }
+
+        return new HitRange(
+                tEnter,
+                Math.min(tExit, maxDistance)
+        );
     }
 
 }
