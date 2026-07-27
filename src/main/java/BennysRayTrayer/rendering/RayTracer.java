@@ -16,7 +16,7 @@ public class RayTracer {
     static boolean useFog = true;
     static float fogDensity = 0.005f;
 
-    static int samplesPerPixel = 4;
+    static int samplesPerPixel = 24;
 
     //AO Settings
     static boolean useAmbientOcclusion = true;
@@ -669,4 +669,12 @@ public class RayTracer {
 
         return closestDistance;
     }
+/*
+    private static boolean russianRoulette(
+            Material material,
+            int depth,
+            Random random
+    ){
+
+    }*/
 }

@@ -32,8 +32,8 @@ public class Main {
 
     public static void main(String[] args) {
         // === Fenster erstellen ===
-        int resX = 1024;
-        int resY = 768;
+        int resX = 1920;
+        int resY = 1080;
 
         int[] pixels = new int[resX * resY];
 
@@ -54,15 +54,6 @@ public class Main {
                 new Vec3(0, -0.2f, -1)
         );
         cam.rotatePitch(-20);
-
-        //topdown view
-        Camera cam1 = new Camera(
-                new Vec3(0, 10, 0),
-                60,
-                new Vec3(0, -1, 0)
-        );
-        cam1.rotatePitch(-180);
-
 
         float petalDistance = 2.0f;
         float smallPetalDistance = 2.1f;
@@ -117,22 +108,6 @@ public class Main {
                 )
         );
 
-        /*new Material(
-                Color.ofRGB(120, 110, 95).toVec3(),
-                0.95,
-                0.05,
-                0.00,
-                1.0
-        )*/
-
-        /*new Material(
-                Color.ofRGB(100, 105, 115).toVec3(),
-                0.7,
-                0.0,
-                0.05,
-                1.0
-        )*/
-
         ground.setPosition(new Vec3(0, -1.3f, 0));
 
         // Objects-Array mit Raymarching erweitern
@@ -146,17 +121,17 @@ public class Main {
 
         Light[] lights = new Light[] {
                 new Light(new Vec3(-6, 8, 8),
-                        2.2,
+                        2.5,
                         Color.ofRGB(255, 245, 220),
                         0.7,
                         12),
-                new Light(new Vec3(0, 8, -15), 1.2, Color.ofRGB(255, 250, 200),0.7,0),
+                new Light(new Vec3(0, 8, -15), 0.8, Color.ofRGB(255, 250, 200),0.7,0),
                 new Light(new Vec3(3, 5, 4),
-                        0.8,
+                        0.5,
                         Color.white(),
                         0.0,
                         0),
-                new Light(new Vec3(-3, 3, 3), 0.4)
+                new Light(new Vec3(-3, 3, 3), 0.25)
         };
 
         Scene scene = new Scene(cam, objects, lights);
