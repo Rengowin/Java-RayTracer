@@ -82,6 +82,10 @@ Material & Light fix:
 
 Ambient Occlusion
 
+<img width="1025" height="773" alt="AOTest" src="https://github.com/user-attachments/assets/812b4f64-bc2e-46bf-a717-569b5fabd84e" />
+
+<img width="1022" height="770" alt="AOWorking" src="https://github.com/user-attachments/assets/73ef0c63-0f98-4fcf-8226-07f3bdab37be" />
+
 
 ---
 Deutsch
