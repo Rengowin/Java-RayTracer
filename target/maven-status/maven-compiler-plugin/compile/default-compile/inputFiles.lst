@@ -1,20 +1,50 @@
-C:\Users\benja\Desktop\Intlli-J Stuff\Raytraying\RayTraycing\src\main\java\BennysRayTrayer\core\Hit.java
-C:\Users\benja\Desktop\Intlli-J Stuff\Raytraying\RayTraycing\src\main\java\BennysRayTrayer\core\HitInterval.java
-C:\Users\benja\Desktop\Intlli-J Stuff\Raytraying\RayTraycing\src\main\java\BennysRayTrayer\core\Matrix4.java
-C:\Users\benja\Desktop\Intlli-J Stuff\Raytraying\RayTraycing\src\main\java\BennysRayTrayer\core\Ray.java
-C:\Users\benja\Desktop\Intlli-J Stuff\Raytraying\RayTraycing\src\main\java\BennysRayTrayer\core\Vec3.java
-C:\Users\benja\Desktop\Intlli-J Stuff\Raytraying\RayTraycing\src\main\java\BennysRayTrayer\input\Input.java
-C:\Users\benja\Desktop\Intlli-J Stuff\Raytraying\RayTraycing\src\main\java\BennysRayTrayer\objects\Cut.java
-C:\Users\benja\Desktop\Intlli-J Stuff\Raytraying\RayTraycing\src\main\java\BennysRayTrayer\objects\DIff.java
-C:\Users\benja\Desktop\Intlli-J Stuff\Raytraying\RayTraycing\src\main\java\BennysRayTrayer\objects\Object3D.java
-C:\Users\benja\Desktop\Intlli-J Stuff\Raytraying\RayTraycing\src\main\java\BennysRayTrayer\objects\Quadric.java
-C:\Users\benja\Desktop\Intlli-J Stuff\Raytraying\RayTraycing\src\main\java\BennysRayTrayer\objects\Sphere.java
-C:\Users\benja\Desktop\Intlli-J Stuff\Raytraying\RayTraycing\src\main\java\BennysRayTrayer\objects\Transform.java
-C:\Users\benja\Desktop\Intlli-J Stuff\Raytraying\RayTraycing\src\main\java\BennysRayTrayer\objects\Union.java
-C:\Users\benja\Desktop\Intlli-J Stuff\Raytraying\RayTraycing\src\main\java\BennysRayTrayer\RayTraying.java
-C:\Users\benja\Desktop\Intlli-J Stuff\Raytraying\RayTraycing\src\main\java\BennysRayTrayer\rendering\CookTorrance.java
-C:\Users\benja\Desktop\Intlli-J Stuff\Raytraying\RayTraycing\src\main\java\BennysRayTrayer\rendering\Light.java
-C:\Users\benja\Desktop\Intlli-J Stuff\Raytraying\RayTraycing\src\main\java\BennysRayTrayer\rendering\Material.java
-C:\Users\benja\Desktop\Intlli-J Stuff\Raytraying\RayTraycing\src\main\java\BennysRayTrayer\rendering\RayTracer.java
-C:\Users\benja\Desktop\Intlli-J Stuff\Raytraying\RayTraycing\src\main\java\BennysRayTrayer\scene\Camera.java
-C:\Users\benja\Desktop\Intlli-J Stuff\Raytraying\RayTraycing\src\main\java\BennysRayTrayer\scene\Scene.java
+C:\Users\benja\Desktop\JavaOrIntellyJStuff\MitGit\RayTraycing\src\main\java\BennysRayTrayer\core\Hit.java
+C:\Users\benja\Desktop\JavaOrIntellyJStuff\MitGit\RayTraycing\src\main\java\BennysRayTrayer\core\HitInterval.java
+C:\Users\benja\Desktop\JavaOrIntellyJStuff\MitGit\RayTraycing\src\main\java\BennysRayTrayer\core\HitRange.java
+C:\Users\benja\Desktop\JavaOrIntellyJStuff\MitGit\RayTraycing\src\main\java\BennysRayTrayer\core\Matrix4.java
+C:\Users\benja\Desktop\JavaOrIntellyJStuff\MitGit\RayTraycing\src\main\java\BennysRayTrayer\core\Ray.java
+C:\Users\benja\Desktop\JavaOrIntellyJStuff\MitGit\RayTraycing\src\main\java\BennysRayTrayer\core\Vec3.java
+C:\Users\benja\Desktop\JavaOrIntellyJStuff\MitGit\RayTraycing\src\main\java\BennysRayTrayer\CSGMaterialBlendMode.java
+C:\Users\benja\Desktop\JavaOrIntellyJStuff\MitGit\RayTraycing\src\main\java\BennysRayTrayer\Main.java
+C:\Users\benja\Desktop\JavaOrIntellyJStuff\MitGit\RayTraycing\src\main\java\BennysRayTrayer\objects\Color.java
+C:\Users\benja\Desktop\JavaOrIntellyJStuff\MitGit\RayTraycing\src\main\java\BennysRayTrayer\objects\Normal\AnalyticObject.java
+C:\Users\benja\Desktop\JavaOrIntellyJStuff\MitGit\RayTraycing\src\main\java\BennysRayTrayer\objects\Normal\csg\Cut.java
+C:\Users\benja\Desktop\JavaOrIntellyJStuff\MitGit\RayTraycing\src\main\java\BennysRayTrayer\objects\Normal\csg\Diff.java
+C:\Users\benja\Desktop\JavaOrIntellyJStuff\MitGit\RayTraycing\src\main\java\BennysRayTrayer\objects\Normal\csg\NormalCSG.java
+C:\Users\benja\Desktop\JavaOrIntellyJStuff\MitGit\RayTraycing\src\main\java\BennysRayTrayer\objects\Normal\csg\Union.java
+C:\Users\benja\Desktop\JavaOrIntellyJStuff\MitGit\RayTraycing\src\main\java\BennysRayTrayer\objects\Normal\HalfSpace.java
+C:\Users\benja\Desktop\JavaOrIntellyJStuff\MitGit\RayTraycing\src\main\java\BennysRayTrayer\objects\Normal\Quadric.java
+C:\Users\benja\Desktop\JavaOrIntellyJStuff\MitGit\RayTraycing\src\main\java\BennysRayTrayer\objects\Normal\Sphere.java
+C:\Users\benja\Desktop\JavaOrIntellyJStuff\MitGit\RayTraycing\src\main\java\BennysRayTrayer\objects\Object3D.java
+C:\Users\benja\Desktop\JavaOrIntellyJStuff\MitGit\RayTraycing\src\main\java\BennysRayTrayer\objects\rayMarch\operations\CoseDisplacement.java
+C:\Users\benja\Desktop\JavaOrIntellyJStuff\MitGit\RayTraycing\src\main\java\BennysRayTrayer\objects\rayMarch\operations\Displacement.java
+C:\Users\benja\Desktop\JavaOrIntellyJStuff\MitGit\RayTraycing\src\main\java\BennysRayTrayer\objects\rayMarch\operations\RayMarchCSG\BoundingMode.java
+C:\Users\benja\Desktop\JavaOrIntellyJStuff\MitGit\RayTraycing\src\main\java\BennysRayTrayer\objects\rayMarch\operations\RayMarchCSG\RayMarchCSG.java
+C:\Users\benja\Desktop\JavaOrIntellyJStuff\MitGit\RayTraycing\src\main\java\BennysRayTrayer\objects\rayMarch\operations\RayMarchCSG\RayMarchCut.java
+C:\Users\benja\Desktop\JavaOrIntellyJStuff\MitGit\RayTraycing\src\main\java\BennysRayTrayer\objects\rayMarch\operations\RayMarchCSG\RayMarchIntersect.java
+C:\Users\benja\Desktop\JavaOrIntellyJStuff\MitGit\RayTraycing\src\main\java\BennysRayTrayer\objects\rayMarch\operations\RayMarchCSG\RayMarchUnion.java
+C:\Users\benja\Desktop\JavaOrIntellyJStuff\MitGit\RayTraycing\src\main\java\BennysRayTrayer\objects\rayMarch\operations\RayMarchCSG\SmoothCut.java
+C:\Users\benja\Desktop\JavaOrIntellyJStuff\MitGit\RayTraycing\src\main\java\BennysRayTrayer\objects\rayMarch\operations\RayMarchCSG\SmoothDiff.java
+C:\Users\benja\Desktop\JavaOrIntellyJStuff\MitGit\RayTraycing\src\main\java\BennysRayTrayer\objects\rayMarch\operations\RayMarchCSG\SmoothIntersect.java
+C:\Users\benja\Desktop\JavaOrIntellyJStuff\MitGit\RayTraycing\src\main\java\BennysRayTrayer\objects\rayMarch\operations\RayMarchCSG\SmoothRayMarchCSG.java
+C:\Users\benja\Desktop\JavaOrIntellyJStuff\MitGit\RayTraycing\src\main\java\BennysRayTrayer\objects\rayMarch\operations\RayMarchCSG\SmoothUnion.java
+C:\Users\benja\Desktop\JavaOrIntellyJStuff\MitGit\RayTraycing\src\main\java\BennysRayTrayer\objects\rayMarch\operations\SineDisplacement.java
+C:\Users\benja\Desktop\JavaOrIntellyJStuff\MitGit\RayTraycing\src\main\java\BennysRayTrayer\objects\rayMarch\operations\TanDisplacement.java
+C:\Users\benja\Desktop\JavaOrIntellyJStuff\MitGit\RayTraycing\src\main\java\BennysRayTrayer\objects\rayMarch\primitives\RayMarchBox.java
+C:\Users\benja\Desktop\JavaOrIntellyJStuff\MitGit\RayTraycing\src\main\java\BennysRayTrayer\objects\rayMarch\primitives\RayMarchCapsule.java
+C:\Users\benja\Desktop\JavaOrIntellyJStuff\MitGit\RayTraycing\src\main\java\BennysRayTrayer\objects\rayMarch\primitives\RayMarchCylinder.java
+C:\Users\benja\Desktop\JavaOrIntellyJStuff\MitGit\RayTraycing\src\main\java\BennysRayTrayer\objects\rayMarch\primitives\RayMarchEllipsoid.java
+C:\Users\benja\Desktop\JavaOrIntellyJStuff\MitGit\RayTraycing\src\main\java\BennysRayTrayer\objects\rayMarch\primitives\RayMarchHalfSpace.java
+C:\Users\benja\Desktop\JavaOrIntellyJStuff\MitGit\RayTraycing\src\main\java\BennysRayTrayer\objects\rayMarch\primitives\RayMarchSphere.java
+C:\Users\benja\Desktop\JavaOrIntellyJStuff\MitGit\RayTraycing\src\main\java\BennysRayTrayer\objects\rayMarch\primitives\RayMarchSpherePlate.java
+C:\Users\benja\Desktop\JavaOrIntellyJStuff\MitGit\RayTraycing\src\main\java\BennysRayTrayer\objects\rayMarch\primitives\RayMarchTorus.java
+C:\Users\benja\Desktop\JavaOrIntellyJStuff\MitGit\RayTraycing\src\main\java\BennysRayTrayer\objects\rayMarch\RayMarchObject.java
+C:\Users\benja\Desktop\JavaOrIntellyJStuff\MitGit\RayTraycing\src\main\java\BennysRayTrayer\objects\Transform.java
+C:\Users\benja\Desktop\JavaOrIntellyJStuff\MitGit\RayTraycing\src\main\java\BennysRayTrayer\rendering\CookTorrance.java
+C:\Users\benja\Desktop\JavaOrIntellyJStuff\MitGit\RayTraycing\src\main\java\BennysRayTrayer\rendering\Fresnel.java
+C:\Users\benja\Desktop\JavaOrIntellyJStuff\MitGit\RayTraycing\src\main\java\BennysRayTrayer\rendering\Light.java
+C:\Users\benja\Desktop\JavaOrIntellyJStuff\MitGit\RayTraycing\src\main\java\BennysRayTrayer\rendering\Material.java
+C:\Users\benja\Desktop\JavaOrIntellyJStuff\MitGit\RayTraycing\src\main\java\BennysRayTrayer\rendering\RayTracer.java
+C:\Users\benja\Desktop\JavaOrIntellyJStuff\MitGit\RayTraycing\src\main\java\BennysRayTrayer\rendering\SampleSeed.java
+C:\Users\benja\Desktop\JavaOrIntellyJStuff\MitGit\RayTraycing\src\main\java\BennysRayTrayer\scene\Camera.java
+C:\Users\benja\Desktop\JavaOrIntellyJStuff\MitGit\RayTraycing\src\main\java\BennysRayTrayer\scene\Scene.java

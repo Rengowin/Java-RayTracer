@@ -32,8 +32,8 @@ public class Main {
 
     public static void main(String[] args) {
         // === Fenster erstellen ===
-        int resX = 1920;
-        int resY = 1080;
+        int resX = 1024;
+        int resY = 768;
 
         int[] pixels = new int[resX * resY];
 
