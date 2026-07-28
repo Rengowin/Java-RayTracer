@@ -75,16 +75,15 @@ The final version renders the scene significantly faster while also using improv
 ## Running the Project
 
 ### Requirements
-- Java version: 17 or later
-- [Any other dependencies if needed]
+- Java 21 or later
 
-### Run from source
-```bash
-# add your build/run command here
-```
+### Run from the release
+If you downloaded the release ZIP, extract it and run:
 
-### Run the release version
-If you download the compiled release, run:
+- **Windows:** double-click the included `.bat` file, or run the `.jar` manually
+- **Other systems:** run the `.jar` with Java 21
+
+Example:
 
 ```bash
 java -jar Java-RayTracer.jar
