@@ -178,3 +178,19 @@ Die finale Version rendert die Szene deutlich schneller und verwendet gleichzeit
 - Texture Mapping
 - Animation
 - Farbvariationen
+
+## Ausführen des Projekts
+
+### Voraussetzungen
+- Java 21 oder höher
+
+### Starten über die Release-Version
+Wenn du die Release-ZIP heruntergeladen hast, entpacke sie zuerst.
+
+- **Windows:** Die enthaltene `.bat`-Datei starten
+- **Andere Systeme:** Die `.jar`-Datei mit Java 21 ausführen
+
+Beispiel:
+
+```bash
+java -jar Java-RayTracer.jar
