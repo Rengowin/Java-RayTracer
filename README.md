@@ -4,8 +4,8 @@
 
 ## English
 
-A Java-based ray tracer developed as part of the Ray Tracing course at HTW Berlin.  
-The project evolved from a recursive ray tracer into a renderer featuring path tracing, ray marching, constructive solid geometry (CSG), physically based shading, and performance optimizations.
+A Java-based ray tracer developed during the Summer Semester 2026 for the Ray Tracing course at HTW Berlin.  
+The project evolved from a simple recursive ray tracer into a renderer featuring Path Tracing, Ray Marching, Constructive Solid Geometry (CSG), physically based shading, and performance optimizations.
 
 ## Preview
 
@@ -91,7 +91,7 @@ java -jar Java-RayTracer.jar
 
 ## Future Improvements
 
-- Russian roulette termination for deeper recursion
+- Russian roulette path termination for deeper recursion
 - Texture mapping
 - Animation
 - Color variation effects
@@ -100,7 +100,7 @@ java -jar Java-RayTracer.jar
 
 ## Deutsch
 
-Ein Java-basierter Raytracer, entwickelt im Rahmen des Ray-Tracing-Kurses an der HTW Berlin.  
+Ein Java-basierter Raytracer, entwickelt im Rahmen des Ray-Tracing-Kurses an der HTW Berlin im Sommersemester 2026.  
 Das Projekt hat sich von einem einfachen rekursiven Raytracer zu einem Renderer mit Path Tracing, Ray Marching, Constructive Solid Geometry (CSG), physikalisch basierter Beleuchtung und Performance-Optimierungen weiterentwickelt.
 
 ## Vorschau
@@ -126,7 +126,7 @@ Das Projekt hat sich von einem einfachen rekursiven Raytracer zu einem Renderer 
 
 ### Umgebung
 - Prozeduraler Himmel
-- Fog
+- Nebel
 
 ### Performance
 - Multithreading
@@ -151,12 +151,12 @@ Rendering eines Bildes mit 1024×768 Pixeln:
 | Erste Implementierung | ~6 Min |
 | Finale Implementierung | ~1 Min 25 s |
 
-Die finale Version rendert die Szene deutlich schneller und verwendet gleichzeitig eine verbesserte Beleuchtung sowie mehr Shadow Rays.
+Die finale Version rendert die Szene deutlich schneller und sowie eine höhere Anzahl an Schattenstrahlen..
 
 ## Entwicklungsverlauf
 
 - Erste Phase mit reinem Skybox-Rendering
-- Fog-Integration
+- Nebel-Integration
 - Ambient Occlusion
 - Material- und Lichtverbesserungen
 - Finale Path-Traced Version
@@ -164,13 +164,13 @@ Die finale Version rendert die Szene deutlich schneller und verwendet gleichzeit
 ## Was ich gelernt habe
 
 - Grundlagen von Ray Tracing und Ray Marching
-- Physikalisch basiertes Rendering
+- Physikalisch basiertes Rendern
 - Performance-Optimierung in Java
 - Abwägung zwischen Genauigkeit, Sampling und Geschwindigkeit
 
 ## Zukünftige Verbesserungen
 
-- Russisch Roulett zur besseren Behandlung tiefer Rekursionen
+- Russisches Roulette zur Terminierung tiefer Rekursionen
 - Texture Mapping
 - Animation
 - Farbvariationen
