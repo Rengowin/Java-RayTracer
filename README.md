@@ -96,10 +96,6 @@ java -jar Java-RayTracer.jar
 - Animation
 - Color variation effects
 
-## License
-
-[Add your license here if applicable]
-
 ---
 
 ## Deutsch
@@ -174,7 +170,7 @@ Die finale Version rendert die Szene deutlich schneller und verwendet gleichzeit
 
 ## Zukünftige Verbesserungen
 
-- Russian Roulette zur besseren Behandlung tiefer Rekursionen
+- Russisch Roulett zur besseren Behandlung tiefer Rekursionen
 - Texture Mapping
 - Animation
 - Farbvariationen
