@@ -70,10 +70,11 @@ The final version renders the scene significantly faster while also using improv
 
 ## What I Learned
 
-- Ray tracing and ray marching fundamentals
-- Physically based rendering concepts
-- Performance optimization in Java
-- Tradeoffs between accuracy, sampling, and speed
+- Fundamentals of ray tracing, ray-object intersections, and recursive ray evaluation
+- Working with coordinate transformations and different geometric representations
+- Differences between analytic ray tracing and SDF-based ray marching
+- How sampling is used for anti-aliasing, soft shadows, ambient occlusion, and path tracing
+- Fundamentals of physically based lighting and material evaluation
 
 ## Running the Project
 
@@ -154,7 +155,7 @@ Rendering eines Bildes mit 1024×768 Pixeln:
 | Erste Implementierung | ~6 Min |
 | Finale Implementierung | ~1 Min 25 s |
 
-Die finale Version rendert die Szene deutlich schneller und sowie eine höhere Anzahl an Schattenstrahlen..
+Die finale Version rendert die Szene deutlich schneller und verwendet gleichzeitig eine verbesserte Beleuchtung sowie eine höhere Anzahl an Schattenstrahlen.
 
 ## Entwicklungsverlauf
 
@@ -169,10 +170,11 @@ Die finale Version rendert die Szene deutlich schneller und sowie eine höhere A
 
 ## Was ich gelernt habe
 
-- Grundlagen von Ray Tracing und Ray Marching
-- Physikalisch basiertes Rendern
-- Performance-Optimierung in Java
-- Abwägung zwischen Genauigkeit, Sampling und Geschwindigkeit
+- Grundlagen von Ray Tracing, Strahl-Objekt-Schnittberechnungen und rekursiver Strahlverfolgung
+- Umgang mit Koordinatentransformationen und unterschiedlichen Geometrierepräsentationen
+- Unterschiede zwischen analytischem Ray Tracing und SDF-basiertem Ray Marching
+- Einsatz von Sampling für Anti-Aliasing, weiche Schatten, Ambient Occlusion und Path Tracing
+- Grundlagen physikalisch basierter Beleuchtungs- und Materialmodelle
 
 ## Zukünftige Verbesserungen
 
