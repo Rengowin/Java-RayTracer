@@ -65,6 +65,9 @@ The final version renders the scene significantly faster while also using improv
 - Material and lighting fixes
 - Final path-traced render
 
+<img width="2000" height="1600" alt="BildFurReadMeVlt" src="https://github.com/user-attachments/assets/27ee4802-4989-461c-a6d0-c2e912ac716c" />
+
+
 ## What I Learned
 
 - Ray tracing and ray marching fundamentals
@@ -160,6 +163,9 @@ Die finale Version rendert die Szene deutlich schneller und sowie eine höhere A
 - Ambient Occlusion
 - Material- und Lichtverbesserungen
 - Finale Path-Traced Version
+
+<img width="2000" height="1600" alt="BildFurReadMeVlt" src="https://github.com/user-attachments/assets/27ee4802-4989-461c-a6d0-c2e912ac716c" />
+
 
 ## Was ich gelernt habe
 
